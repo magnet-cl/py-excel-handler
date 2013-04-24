@@ -19,9 +19,16 @@ class ExcelHandler():
         self.sheet = self.workbook.sheet_by_index(0)
 
     def set_sheet(self, sheet_index):
+        """ sets the current sheet with the given sheet_index """
         self.sheet = self.workbook.sheet_by_index(sheet_index)
 
-    def read_columns(self, column_structure, starting_row=0, max_rows=-1):
+    def read_rows(self, column_structure, starting_row=0, max_rows=-1):
+        """ Reads the current sheet from the starting row to the last row or up
+        to a max of max_rows if greater than 0
+
+        returns an array with the data
+
+        """
         data = []
         row = starting_row
 
