@@ -1,22 +1,29 @@
 """ This document defines the excel_handler module """
 import xlrd
+import xlwt
 
 
 class ExcelHandler():
     """ ExcelHandler is a class that is used to wrap common operations in
     excel files """
 
-    def __init__(self, path=None, excel_file=None):
+    def __init__(self, path=None, excel_file=None, mode='r'):
         if path is None and excel_file is None:
             raise Exception("path or excel_file requried")
         if path is not None and excel_file is not None:
             raise Exception("Only specify path or excel_file, not both")
+        if mode == 'r':
+            if path:
+                excel_file = open(path, mode)
 
-        if path:
-            excel_file = open(path, 'r')
+            self.workbook = xlrd.open_workbook(file_contents=excel_file.read())
+            self.sheet = self.workbook.sheet_by_index(0)
+        else:
+            self.path = path
+            self.workbook = xlwt.Workbook()
 
-        self.workbook = xlrd.open_workbook(file_contents=excel_file.read())
-        self.sheet = self.workbook.sheet_by_index(0)
+    def add_sheet(self, name):
+        self.sheet = self.workbook.add_sheet(name)
 
     def set_sheet(self, sheet_index):
         """ sets the current sheet with the given sheet_index """
@@ -51,3 +58,15 @@ class ExcelHandler():
             data.append(column_data)
 
         return data
+
+    def save(self):
+        """ Save document """
+
+        self.workbook.save(self.path)
+
+    def write_rows(self, rows):
+        """ Write rows in the current sheet """
+
+        for x, row in enumerate(rows):
+            for y, value in enumerate(row):
+                self.sheet.write(x, y, value)
