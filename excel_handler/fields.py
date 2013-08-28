@@ -8,7 +8,13 @@ class Field(object):
         else:
             self.choices = None
 
+        if 'default' in kwargs:
+            self.default = kwargs['default']
+
     def cast(self, value):
+        if value == '' and self.default:
+            return self.default
+
         if self.choices:
             return self.cast_method(self.choices_inv[value])
 

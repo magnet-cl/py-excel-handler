@@ -7,9 +7,9 @@ import unittest
 class MyExcelHandler(ExcelHandler):
     CHOICES = ((1, 'one'), (2, 'two'), (3, 'three'), (4, 'four'),
                (5, 'five'), (6, 'six'), (7, 'seven'), (8, 'eight'))
-    first = fields.IntegerField(col=0)
-    second = fields.IntegerField(col=1, choices=CHOICES)
-    third = fields.CharField(col=2)
+    first = fields.IntegerField(col=0, default=100)
+    second = fields.IntegerField(col=1, choices=CHOICES, default=3)
+    third = fields.CharField(col=2, default="hello")
     forth = fields.CharField(col=3)
 
 
@@ -29,7 +29,7 @@ class TestExcelHandlerCase(unittest.TestCase):
 
         data = eh.read_rows(column_structure)
 
-        self.assertEqual(len(data), 2)
+        self.assertEqual(len(data), 3)
         self.assertEqual(len(data[0]), 4)
         self.assertEqual(len(data[1]), 4)
 
@@ -40,7 +40,7 @@ class TestExcelHandlerCase(unittest.TestCase):
 
         second_row = eh.read_rows(column_structure, starting_row=1)
 
-        self.assertEqual(len(second_row), 1)
+        self.assertEqual(len(second_row), 2)
         self.assertEqual(len(second_row[0]), 4)
 
         for key, value in data[0].items():
@@ -75,6 +75,11 @@ class TestCustomExcelHandler(unittest.TestCase):
             "second": 6,
             "third": "7.0",
             "forth": "8.0",
+        }, {
+            "first": 100,
+            "second": 3,
+            "third": "hello",
+            "forth": "12.0",
         }]
 
         for i, obj in enumerate(expected_data):
@@ -95,6 +100,8 @@ class TestCustomExcelHandler(unittest.TestCase):
             'second': 2,
             'third': "b",
             'forth': "c",
+        }, {
+            'forth': "c",
         }]
         eh.write(data)
         eh.save()
@@ -102,7 +109,7 @@ class TestCustomExcelHandler(unittest.TestCase):
         eh = MyExcelHandler(path='test/test_out.xls', mode='r')
 
         in_data = eh.read()
-        self.assertEqual(len(in_data), 2)
+        self.assertEqual(len(in_data), 3)
 
         for i, obj in enumerate(data):
             for k, v in obj.items():
@@ -120,6 +127,11 @@ class TestCustomExcelHandler(unittest.TestCase):
             eh.sheet.cell(colx=1, rowx=1).value,
             choices[data[1]['second']]
         )
+
+        # testing the default valus
+        self.assertEqual(in_data[2]['first'], 100)
+        self.assertEqual(in_data[2]['second'], 3)
+        self.assertEqual(in_data[2]['third'], 'hello')
 
 if __name__ == '__main__':
     unittest.main()
