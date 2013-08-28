@@ -88,7 +88,7 @@ class TestCustomExcelHandler(unittest.TestCase):
         eh = MyExcelHandler(path='test/test_out.xls', mode='r')
 
         in_data = eh.read()
-        self.assertEqual(len(data), 2)
+        self.assertEqual(len(in_data), 2)
 
         for i, obj in enumerate(data):
             for k, v in obj.items():

@@ -133,6 +133,6 @@ class ExcelHandler():
                 try:
                     field = self.fieldname_to_field[field_name]
                 except KeyError:
-                    raise FieldNotFound(field_name)
-
-                self.sheet.write(row, field.col,  value)
+                    pass
+                else:
+                    self.sheet.write(row, field.col,  value)
