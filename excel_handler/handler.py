@@ -135,4 +135,4 @@ class ExcelHandler():
                 except KeyError:
                     pass
                 else:
-                    self.sheet.write(row, field.col,  value)
+                    self.sheet.write(row, field.col,  field.decode(value))

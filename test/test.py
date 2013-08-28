@@ -5,8 +5,10 @@ import unittest
 
 
 class MyExcelHandler(ExcelHandler):
+    CHOICES = ((1, 'one'), (2, 'two'), (3, 'three'), (4, 'four'),
+               (5, 'five'), (6, 'six'), (7, 'seven'), (8, 'eight'))
     first = fields.IntegerField(col=0)
-    second = fields.IntegerField(col=1)
+    second = fields.IntegerField(col=1, choices=CHOICES)
     third = fields.CharField(col=2)
     forth = fields.CharField(col=3)
 
@@ -63,9 +65,21 @@ class TestCustomExcelHandler(unittest.TestCase):
 
         data = eh.read()
 
-        self.assertEqual(len(data), 2)
-        self.assertEqual(len(data[0]), 4)
-        self.assertEqual(len(data[1]), 4)
+        expected_data = [{
+            "first": 1,
+            "second": 2,
+            "third": "3.0",
+            "forth": "4.0",
+        }, {
+            "first": 5,
+            "second": 6,
+            "third": "7.0",
+            "forth": "8.0",
+        }]
+
+        for i, obj in enumerate(expected_data):
+            for k, v in obj.items():
+                self.assertEqual(data[i][k], v)
 
     def test_write(self):
         eh = MyExcelHandler(path='test/test_out.xls', mode='w')
@@ -94,6 +108,18 @@ class TestCustomExcelHandler(unittest.TestCase):
             for k, v in obj.items():
                 self.assertEqual(in_data[i][k], v)
 
+        # testing the choices valus
+        choices = dict((x, y) for x, y in MyExcelHandler.CHOICES)
+
+        self.assertEqual(
+            eh.sheet.cell(colx=1, rowx=0).value,
+            choices[data[0]['second']]
+        )
+
+        self.assertEqual(
+            eh.sheet.cell(colx=1, rowx=1).value,
+            choices[data[1]['second']]
+        )
 
 if __name__ == '__main__':
     unittest.main()
