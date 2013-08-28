@@ -1,4 +1,5 @@
 from excel_handler import ExcelHandler
+from fit_sheet_wrapper import FitSheetWrapper
 
 import unittest
 
@@ -48,6 +49,16 @@ class TestSequenceFunctions(unittest.TestCase):
         workbook.write_rows(rows)
         workbook.save()
 
+    def test_write_rows_auto(self):
+
+        rows = [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
+
+        workbook = ExcelHandler(path='test_write.xls', mode='w')
+        sheet = FitSheetWrapper(workbook.add_sheet(name='Attendance'))
+        for x, row in enumerate(rows):
+            for y, value in enumerate(row):
+                sheet.write(x, y, value)
+        workbook.save()
 
 if __name__ == '__main__':
     unittest.main()
