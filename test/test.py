@@ -11,9 +11,10 @@ class MyExcelHandler(ExcelHandler):
     first = fields.IntegerField(col=0, default=100)
     second = fields.IntegerField(col=1, choices=CHOICES, default=3)
     third = fields.CharField(col=2, default="hello")
-    forth = fields.CharField(col=3)
+    forth = fields.CharField(col=3, width=1)
     date_time = fields.DateTimeField(col=4, default=datetime.datetime.now)
     date = fields.DateField(col=5, default=datetime.date.today)
+    empty_last_fields = fields.CharField(col=6, default="")
 
 
 class TestExcelHandlerCase(unittest.TestCase):
@@ -105,11 +106,17 @@ class TestCustomExcelHandler(unittest.TestCase):
             'second': 1,
             'third': "a",
             'forth': "a",
+            "date_time": datetime.datetime(2012, 10, 1, 12, 30, 47),
+            "date": datetime.date(2013, 10, 1),
+            "empty_last_fields": "",
         }, {
             'first': 2,
             'second': 2,
             'third': "b",
             'forth': "c",
+            "date_time": datetime.datetime(2012, 10, 1, 12, 30, 47),
+            "date": datetime.date(2013, 10, 1),
+            "empty_last_fields": "",
         }, {
             'forth': "c",
         }]

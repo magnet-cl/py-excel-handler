@@ -1,4 +1,5 @@
 import xlrd
+import xlwt
 import datetime
 
 
@@ -14,6 +15,13 @@ class Field(object):
 
         if 'default' in kwargs:
             self.default = kwargs['default']
+        else:
+            self.default = None
+
+        if 'width' in kwargs:
+            self.width = (kwargs['width'] + 1) * 256
+        else:
+            self.width = None
 
     def cast(self, value, book):
         if value == '' and self.default:
@@ -24,11 +32,14 @@ class Field(object):
 
         return self.cast_method(value)
 
-    def decode(self, value):
+    def write(self, sheet, row, value):
         if self.choices:
-            return self.choices[value]
+            value = self.choices[value]
 
-        return value
+        sheet.write(row, self.col,  value)
+
+        if self.width:
+            sheet.col(self.col).width = self.width
 
 
 class IntegerField(Field):
@@ -53,6 +64,11 @@ class DateTimeField(Field):
         date_tuple = xlrd.xldate_as_tuple(value, datemode=workbook.datemode)
         return datetime.datetime(*date_tuple[:6])
 
+    def write(self, sheet, row, value):
+        xf = xlwt.easyxf(num_format_str='MM/DD/YYYY HH:MM:SS')
+        sheet.write(row, self.col,  value, xf)
+        sheet.col(self.col).width = 4864  # 19 * 256
+
 
 class DateField(DateTimeField):
     def cast(self, value, workbook):
@@ -63,3 +79,8 @@ class DateField(DateTimeField):
 
         date_tuple = xlrd.xldate_as_tuple(value, datemode=workbook.datemode)
         return datetime.date(*date_tuple[:3])
+
+    def write(self, sheet, row, value):
+        xf = xlwt.easyxf(num_format_str='MM/DD/YYYY')
+        sheet.write(row, self.col,  value, xf)
+        sheet.col(self.col).width = 2560  # 10 * 256

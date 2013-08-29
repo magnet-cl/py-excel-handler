@@ -101,7 +101,8 @@ class ExcelHandler():
                         rowx=row
                     ).value
                 except:
-                    pass
+                    if hasattr(field, 'default'):
+                        column_data[field.name] = field.default
                 else:
                     column_data[field.name] = field.cast(value, self.workbook)
                     data_read = True
@@ -135,4 +136,4 @@ class ExcelHandler():
                 except KeyError:
                     pass
                 else:
-                    self.sheet.write(row, field.col,  field.decode(value))
+                    field.write(self.sheet, row, value)
