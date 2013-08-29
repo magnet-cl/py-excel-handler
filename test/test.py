@@ -14,7 +14,8 @@ class MyExcelHandler(ExcelHandler):
     forth = fields.CharField(col=3, width=1)
     date_time = fields.DateTimeField(col=4, default=datetime.datetime.now)
     date = fields.DateField(col=5, default=datetime.date.today)
-    empty_last_fields = fields.CharField(col=6, default="")
+    boolean = fields.BooleanField(col=6, default=False)
+    empty_last_fields = fields.CharField(col=7, default="")
 
 
 class TestExcelHandlerCase(unittest.TestCase):
@@ -74,9 +75,10 @@ class TestCustomExcelHandler(unittest.TestCase):
             "second": 2,
             "third": "3.0",
             "forth": "4.0",
-
             "date_time": datetime.datetime(2012, 10, 1, 12, 30, 47),
             "date": datetime.date(2013, 10, 1),
+            "boolean": True,
+            "empty_last_fields": "",
         }, {
             "first": 5,
             "second": 6,
@@ -84,12 +86,16 @@ class TestCustomExcelHandler(unittest.TestCase):
             "forth": "8.0",
             "date_time": datetime.datetime(2012, 10, 1, 12, 33, 56),
             "date": datetime.date(2013, 10, 2),
+            "boolean": False,
+            "empty_last_fields": "",
         }, {
             "first": 100,
             "second": 3,
             "third": "hello",
             "forth": "12.0",
             "date": datetime.date.today(),
+            "boolean": False,
+            "empty_last_fields": "",
         }]
 
         for i, obj in enumerate(expected_data):
@@ -108,6 +114,7 @@ class TestCustomExcelHandler(unittest.TestCase):
             'forth': "a",
             "date_time": datetime.datetime(2012, 10, 1, 12, 30, 47),
             "date": datetime.date(2013, 10, 1),
+            "boolean": False,
             "empty_last_fields": "",
         }, {
             'first': 2,
@@ -116,6 +123,7 @@ class TestCustomExcelHandler(unittest.TestCase):
             'forth': "c",
             "date_time": datetime.datetime(2012, 10, 1, 12, 30, 47),
             "date": datetime.date(2013, 10, 1),
+            "boolean": True,
             "empty_last_fields": "",
         }, {
             'forth': "c",
@@ -149,6 +157,7 @@ class TestCustomExcelHandler(unittest.TestCase):
         self.assertEqual(in_data[2]['first'], 100)
         self.assertEqual(in_data[2]['second'], 3)
         self.assertEqual(in_data[2]['third'], 'hello')
+        self.assertEqual(in_data[2]['boolean'], False)
 
 if __name__ == '__main__':
     unittest.main()

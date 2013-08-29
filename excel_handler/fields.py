@@ -48,6 +48,12 @@ class IntegerField(Field):
         self.cast_method = int
 
 
+class BooleanField(Field):
+    def __init__(self, col, *args, **kwargs):
+        super(BooleanField, self).__init__(col, *args, **kwargs)
+        self.cast_method = bool
+
+
 class CharField(Field):
     def __init__(self, col, *args, **kwargs):
         super(CharField, self).__init__(col, *args, **kwargs)
