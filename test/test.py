@@ -8,14 +8,30 @@ import datetime
 class MyExcelHandler(ExcelHandler):
     CHOICES = ((1, 'one'), (2, 'two'), (3, 'three'), (4, 'four'),
                (5, 'five'), (6, 'six'), (7, 'seven'), (8, 'eight'))
-    first = fields.IntegerField(col=0, default=100)
-    second = fields.IntegerField(col=1, choices=CHOICES, default=3)
-    third = fields.CharField(col=2, default="hello")
-    forth = fields.CharField(col=3, width=1)
-    date_time = fields.DateTimeField(col=4, default=datetime.datetime.now)
-    date = fields.DateField(col=5, default=datetime.date.today)
-    boolean = fields.BooleanField(col=6, default=False)
-    empty_last_fields = fields.CharField(col=7, default="")
+    first = fields.IntegerField(
+        col=0, default=100, verbose_name="First"
+    )
+    second = fields.IntegerField(
+        col=1, choices=CHOICES, default=3, verbose_name="Second"
+    )
+    third = fields.CharField(
+        col=2, default="hello", verbose_name="Third"
+    )
+    fourth = fields.CharField(
+        col=3, width=6, verbose_name="Fourth"
+    )
+    date_time = fields.DateTimeField(
+        col=4, default=datetime.datetime.now, verbose_name="Date Time"
+    )
+    date = fields.DateField(
+        col=5, default=datetime.date.today, verbose_name="Date"
+    )
+    boolean = fields.BooleanField(
+        col=6, default=False, verbose_name="Boolean"
+    )
+    empty_last_fields = fields.CharField(
+        col=7, default="", verbose_name="Empty"
+    )
 
 
 class TestExcelHandlerCase(unittest.TestCase):
@@ -29,7 +45,7 @@ class TestExcelHandlerCase(unittest.TestCase):
             'first': 0,
             'second': 1,
             'third': 2,
-            'forth': 3
+            'fourth': 3
         }
 
         data = eh.read_rows(column_structure)
@@ -74,7 +90,7 @@ class TestCustomExcelHandler(unittest.TestCase):
             "first": 1,
             "second": 2,
             "third": "3.0",
-            "forth": "4.0",
+            "fourth": "4.0",
             "date_time": datetime.datetime(2012, 10, 1, 12, 30, 47),
             "date": datetime.date(2013, 10, 1),
             "boolean": True,
@@ -83,7 +99,7 @@ class TestCustomExcelHandler(unittest.TestCase):
             "first": 5,
             "second": 6,
             "third": "7.0",
-            "forth": "8.0",
+            "fourth": "8.0",
             "date_time": datetime.datetime(2012, 10, 1, 12, 33, 56),
             "date": datetime.date(2013, 10, 2),
             "boolean": False,
@@ -92,7 +108,7 @@ class TestCustomExcelHandler(unittest.TestCase):
             "first": 100,
             "second": 3,
             "third": "hello",
-            "forth": "12.0",
+            "fourth": "12.0",
             "date": datetime.date.today(),
             "boolean": False,
             "empty_last_fields": "",
@@ -111,7 +127,7 @@ class TestCustomExcelHandler(unittest.TestCase):
             'first': 1,
             'second': 1,
             'third': "a",
-            'forth': "a",
+            'fourth': "a",
             "date_time": datetime.datetime(2012, 10, 1, 12, 30, 47),
             "date": datetime.date(2013, 10, 1),
             "boolean": False,
@@ -120,20 +136,20 @@ class TestCustomExcelHandler(unittest.TestCase):
             'first': 2,
             'second': 2,
             'third': "b",
-            'forth': "c",
+            'fourth': "c",
             "date_time": datetime.datetime(2012, 10, 1, 12, 30, 47),
             "date": datetime.date(2013, 10, 1),
             "boolean": True,
             "empty_last_fields": "",
         }, {
-            'forth': "c",
+            'fourth': "c",
         }]
-        eh.write(data)
+        eh.write(data, set_titles=True)
         eh.save()
 
         eh = MyExcelHandler(path='test/test_out.xls', mode='r')
 
-        in_data = eh.read()
+        in_data = eh.read(skip_titles=True)
         self.assertEqual(len(in_data), 3)
 
         for i, obj in enumerate(data):
@@ -144,12 +160,12 @@ class TestCustomExcelHandler(unittest.TestCase):
         choices = dict((x, y) for x, y in MyExcelHandler.CHOICES)
 
         self.assertEqual(
-            eh.sheet.cell(colx=1, rowx=0).value,
+            eh.sheet.cell(colx=1, rowx=1).value,
             choices[data[0]['second']]
         )
 
         self.assertEqual(
-            eh.sheet.cell(colx=1, rowx=1).value,
+            eh.sheet.cell(colx=1, rowx=2).value,
             choices[data[1]['second']]
         )
 

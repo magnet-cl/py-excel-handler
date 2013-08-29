@@ -23,6 +23,11 @@ class Field(object):
         else:
             self.width = None
 
+        if 'verbose_name' in kwargs:
+            self.verbose_name = kwargs['verbose_name']
+        else:
+            self.verbose_name = ""
+
     def cast(self, value, book):
         if value == '' and self.default:
             return self.default

@@ -15,6 +15,8 @@ class ExcelHandlerMetaClass(type):
             if isinstance(v, Field):
                 field = attrs.pop(k)
                 field.name = k
+                if field.verbose_name == "":
+                    field.verbose_name = name
                 fieldname_to_field[k] = field
 
         attrs['fieldname_to_field'] = fieldname_to_field
@@ -82,13 +84,15 @@ class ExcelHandler():
 
         return data
 
-    def read(self):
+    def read(self, skip_titles=False):
         """
         Using the structure defined with the Field attributes, reads the excel
         and returns the data in an array of dicts
         """
         data = []
         row = 0
+        if skip_titles:
+            row = 1
 
         while True:
             column_data = {}
@@ -128,8 +132,14 @@ class ExcelHandler():
             for y, value in enumerate(row):
                 self.sheet.write(x, y, value)
 
-    def write(self, data):
-        for row, row_data in enumerate(data):
+    def write(self, data, set_titles=False):
+        row = 0
+        if set_titles:
+            for field_name, field in self.fieldname_to_field.items():
+                self.sheet.write(0, field.col,  field.verbose_name)
+            row = 1
+
+        for row_data in data:
             for field_name, value in row_data.items():
                 try:
                     field = self.fieldname_to_field[field_name]
@@ -137,3 +147,4 @@ class ExcelHandler():
                     pass
                 else:
                     field.write(self.sheet, row, value)
+            row += 1
