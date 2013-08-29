@@ -28,9 +28,17 @@ class Field(object):
             return self.default
 
         if self.choices:
-            return self.cast_method(self.choices_inv[value])
+            try:
+                return self.cast_method(self.choices_inv[value])
+            except ValueError, error:
+                error.args += (self.name,)
+                raise ValueError(error)
 
-        return self.cast_method(value)
+        try:
+            return self.cast_method(value)
+        except ValueError, error:
+            error.args += (self.name,)
+            raise ValueError(error)
 
     def write(self, sheet, row, value):
         if self.choices:
