@@ -43,10 +43,18 @@ class CharField(Field):
         self.cast_method = str
 
 
-class DateField(Field):
-    def __init__(self, col, *args, **kwargs):
-        super(DateField, self).__init__(col, *args, **kwargs)
+class DateTimeField(Field):
+    def cast(self, value, workbook):
+        if value == '' and self.default:
+            if callable(self.default):
+                return self.default()
+            return self.default
 
+        date_tuple = xlrd.xldate_as_tuple(value, datemode=workbook.datemode)
+        return datetime.datetime(*date_tuple[:6])
+
+
+class DateField(DateTimeField):
     def cast(self, value, workbook):
         if value == '' and self.default:
             if callable(self.default):
