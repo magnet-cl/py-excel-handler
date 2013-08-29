@@ -2,6 +2,7 @@ from excel_handler import ExcelHandler
 from excel_handler import fields
 
 import unittest
+import datetime
 
 
 class MyExcelHandler(ExcelHandler):
@@ -11,6 +12,7 @@ class MyExcelHandler(ExcelHandler):
     second = fields.IntegerField(col=1, choices=CHOICES, default=3)
     third = fields.CharField(col=2, default="hello")
     forth = fields.CharField(col=3)
+    date = fields.DateField(col=4, default=datetime.date.today)
 
 
 class TestExcelHandlerCase(unittest.TestCase):
@@ -70,16 +72,19 @@ class TestCustomExcelHandler(unittest.TestCase):
             "second": 2,
             "third": "3.0",
             "forth": "4.0",
+            "date": datetime.date(2012, 10, 1),
         }, {
             "first": 5,
             "second": 6,
             "third": "7.0",
             "forth": "8.0",
+            "date": datetime.date(2012, 10, 2),
         }, {
             "first": 100,
             "second": 3,
             "third": "hello",
             "forth": "12.0",
+            "date": datetime.date.today(),
         }]
 
         for i, obj in enumerate(expected_data):

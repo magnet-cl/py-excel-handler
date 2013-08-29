@@ -38,3 +38,4 @@ nosetests.xml
 
 test/test_write.xls
 test/test_out.xls
+test/.~*

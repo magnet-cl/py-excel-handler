@@ -103,7 +103,7 @@ class ExcelHandler():
                 except:
                     pass
                 else:
-                    column_data[field.name] = field.cast(value)
+                    column_data[field.name] = field.cast(value, self.workbook)
                     data_read = True
 
             row += 1

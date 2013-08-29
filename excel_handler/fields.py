@@ -1,3 +1,7 @@
+import xlrd
+import datetime
+
+
 class Field(object):
     def __init__(self, col, **kwargs):
         self.col = col
@@ -11,7 +15,7 @@ class Field(object):
         if 'default' in kwargs:
             self.default = kwargs['default']
 
-    def cast(self, value):
+    def cast(self, value, book):
         if value == '' and self.default:
             return self.default
 
@@ -37,3 +41,17 @@ class CharField(Field):
     def __init__(self, col, *args, **kwargs):
         super(CharField, self).__init__(col, *args, **kwargs)
         self.cast_method = str
+
+
+class DateField(Field):
+    def __init__(self, col, *args, **kwargs):
+        super(DateField, self).__init__(col, *args, **kwargs)
+
+    def cast(self, value, workbook):
+        if value == '' and self.default:
+            if callable(self.default):
+                return self.default()
+            return self.default
+
+        date_tuple = xlrd.xldate_as_tuple(value, datemode=workbook.datemode)
+        return datetime.date(*date_tuple[:3])
