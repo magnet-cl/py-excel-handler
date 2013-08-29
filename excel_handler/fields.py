@@ -33,6 +33,9 @@ class Field(object):
             except ValueError, error:
                 error.args += (self.name,)
                 raise ValueError(error)
+            except KeyError, error:
+                error.args += (self.name,)
+                raise KeyError(error)
 
         try:
             return self.cast_method(value)
