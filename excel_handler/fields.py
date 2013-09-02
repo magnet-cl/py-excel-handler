@@ -55,10 +55,10 @@ class Field(object):
 
         sheet.write(row, self.col,  value)
 
+    def set_format(self, workbook, sheet):
         if self.width:
             # xlwt format size
             # sheet.col(self.col).width = self.width
-            print self.width
             sheet.set_column(self.col, self.col, self.width)
 
 
@@ -94,14 +94,15 @@ class DateTimeField(Field):
         # xlwt date format
         # xf = xlswriter.easyxf(num_format_str='MM/DD/YYYY HH:MM:SS')
         # sheet.write(row, self.col,  value, xf)
-
         date_format = workbook.add_format(
             {'num_format': 'MM/DD/YYYY HH:MM:SS'}
         )
         sheet.write(row, self.col,  value, date_format)
+
+    def set_format(self, workbook, sheet):
         # xlwt format size
         # sheet.col(self.col).width = 4864  # 19 * 256
-        sheet.set_column(self.col, self.col, 15)
+        sheet.set_column(self.col, self.col, 18)
 
 
 class DateField(DateTimeField):
@@ -123,6 +124,7 @@ class DateField(DateTimeField):
         )
         sheet.write(row, self.col,  value, date_format)
 
+    def set_format(self, workbook, sheet):
         # xlwt format size
-        # sheet.col(self.col).width = 2560  # 10 * 256
+        # sheet.col(self.col).width = 4864  # 19 * 256
         sheet.set_column(self.col, self.col, 15)

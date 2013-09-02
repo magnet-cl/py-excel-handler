@@ -11,6 +11,11 @@ class FieldNotFound(Exception):
 class ExcelHandlerMetaClass(type):
     def __new__(cls, name, bases, attrs):
         fieldname_to_field = {}
+
+        for base in bases[::-1]:
+            if hasattr(base, 'fieldname_to_field'):
+                fieldname_to_field.update(base.fieldname_to_field)
+
         for k, v in attrs.items():
             if isinstance(v, Field):
                 field = attrs.pop(k)
@@ -143,10 +148,17 @@ class ExcelHandler():
 
     def write(self, data, set_titles=False):
         row = 0
+
+        # set titles
         if set_titles:
             for field_name, field in self.fieldname_to_field.items():
                 self.sheet.write(0, field.col,  field.verbose_name)
             row = 1
+
+        # set format
+        for field_name, field in self.fieldname_to_field.items():
+            field.set_format(self.workbook, self.sheet)
+        row = 1
 
         for row_data in data:
             for field_name, value in row_data.items():

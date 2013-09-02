@@ -34,6 +34,10 @@ class MyExcelHandler(ExcelHandler):
     )
 
 
+class InheritedExcelHandler(MyExcelHandler):
+    pass
+
+
 class TestExcelHandlerCase(unittest.TestCase):
 
     def test_read_rows(self):
@@ -81,8 +85,12 @@ class TestExcelHandlerCase(unittest.TestCase):
 
 
 class TestCustomExcelHandler(unittest.TestCase):
+    def setUp(self):
+        super(TestCustomExcelHandler, self).setUp()
+        self.excel_handler_cls = MyExcelHandler
+
     def test_read(self):
-        eh = MyExcelHandler(path='test/test.xls', mode='r')
+        eh = self.excel_handler_cls(path='test/test.xls', mode='r')
 
         data = eh.read()
 
@@ -120,7 +128,7 @@ class TestCustomExcelHandler(unittest.TestCase):
                 self.assertEqual(read_value, expected_value)
 
     def test_write(self):
-        eh = MyExcelHandler(path='test/test_out.xlsx', mode='w')
+        eh = self.excel_handler_cls(path='test/test_out.xlsx', mode='w')
         eh.add_sheet(name='Data')
 
         data = [{
@@ -147,7 +155,7 @@ class TestCustomExcelHandler(unittest.TestCase):
         eh.write(data, set_titles=True)
         eh.save()
 
-        eh = MyExcelHandler(path='test/test_out.xlsx', mode='r')
+        eh = self.excel_handler_cls(path='test/test_out.xlsx', mode='r')
 
         in_data = eh.read(skip_titles=True)
         self.assertEqual(len(in_data), 3)
@@ -157,7 +165,7 @@ class TestCustomExcelHandler(unittest.TestCase):
                 self.assertEqual(in_data[i][k], v)
 
         # testing the choices valus
-        choices = dict((x, y) for x, y in MyExcelHandler.CHOICES)
+        choices = dict((x, y) for x, y in self.excel_handler_cls.CHOICES)
 
         self.assertEqual(
             eh.sheet.cell(colx=1, rowx=1).value,
@@ -174,6 +182,12 @@ class TestCustomExcelHandler(unittest.TestCase):
         self.assertEqual(in_data[2]['second'], 3)
         self.assertEqual(in_data[2]['third'], 'hello')
         self.assertEqual(in_data[2]['boolean'], False)
+
+
+class TestExcelHandlerInheritance(TestCustomExcelHandler):
+    def setUp(self):
+        super(TestExcelHandlerInheritance, self).setUp()
+        self.excel_handler_cls = InheritedExcelHandler
 
 if __name__ == '__main__':
     unittest.main()
