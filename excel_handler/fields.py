@@ -1,5 +1,4 @@
 import xlrd
-import xlwt
 import datetime
 
 
@@ -48,14 +47,16 @@ class Field(object):
             error.args += (self.name,)
             raise ValueError(error)
 
-    def write(self, sheet, row, value):
+    def write(self, workbook, sheet, row, value):
         if self.choices:
             value = self.choices[value]
 
         sheet.write(row, self.col,  value)
 
         if self.width:
-            sheet.col(self.col).width = self.width
+            # xlwt format size
+            # sheet.col(self.col).width = self.width
+            sheet.set_column(self.col, self.col, self.width)
 
 
 class IntegerField(Field):
@@ -86,10 +87,18 @@ class DateTimeField(Field):
         date_tuple = xlrd.xldate_as_tuple(value, datemode=workbook.datemode)
         return datetime.datetime(*date_tuple[:6])
 
-    def write(self, sheet, row, value):
-        xf = xlwt.easyxf(num_format_str='MM/DD/YYYY HH:MM:SS')
-        sheet.write(row, self.col,  value, xf)
-        sheet.col(self.col).width = 4864  # 19 * 256
+    def write(self, workbook, sheet, row, value):
+        # xlwt date format
+        # xf = xlswriter.easyxf(num_format_str='MM/DD/YYYY HH:MM:SS')
+        # sheet.write(row, self.col,  value, xf)
+
+        date_format = workbook.add_format(
+            {'num_format': 'MM/DD/YYYY HH:MM:SS'}
+        )
+        sheet.write(row, self.col,  value, date_format)
+        # xlwt format size
+        # sheet.col(self.col).width = 4864  # 19 * 256
+        sheet.set_column(self.col, self.col, 15)
 
 
 class DateField(DateTimeField):
@@ -102,7 +111,15 @@ class DateField(DateTimeField):
         date_tuple = xlrd.xldate_as_tuple(value, datemode=workbook.datemode)
         return datetime.date(*date_tuple[:3])
 
-    def write(self, sheet, row, value):
-        xf = xlwt.easyxf(num_format_str='MM/DD/YYYY')
-        sheet.write(row, self.col,  value, xf)
-        sheet.col(self.col).width = 2560  # 10 * 256
+    def write(self, workbook, sheet, row, value):
+        # xlwt date format
+        # xf = xlswriter.easyxf(num_format_str='MM/DD/YYYY')
+        # sheet.write(row, self.col,  value, xf)
+        date_format = workbook.add_format(
+            {'num_format': 'MM/DD/YYYY'}
+        )
+        sheet.write(row, self.col,  value, date_format)
+
+        # xlwt format size
+        # sheet.col(self.col).width = 2560  # 10 * 256
+        sheet.set_column(self.col, self.col, 15)

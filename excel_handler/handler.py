@@ -1,6 +1,6 @@
 """ This document defines the excel_handler module """
 import xlrd
-import xlwt
+import xlsxwriter
 from fields import Field
 
 
@@ -43,12 +43,19 @@ class ExcelHandler():
             self.sheet = self.workbook.sheet_by_index(0)
         else:
             self.path = path
-            self.workbook = xlwt.Workbook()
+
+            # xlwt woorkbook
+            # self.workbook = xlwt.Workbook()
+
+            self.workbook = xlsxwriter.Workbook(self.path)
 
         self.parser = None
 
     def add_sheet(self, name):
-        self.sheet = self.workbook.add_sheet(name)
+        # xlwt
+        # self.sheet = self.workbook.add_sheet(name)
+
+        self.sheet = self.workbook.add_worksheet(name)
 
     def set_sheet(self, sheet_index):
         """ sets the current sheet with the given sheet_index """
@@ -123,7 +130,9 @@ class ExcelHandler():
     def save(self):
         """ Save document """
 
-        self.workbook.save(self.path)
+        # xlwt save
+        # self.workbook.save(self.path)
+        self.workbook.close()
 
     def write_rows(self, rows):
         """ Write rows in the current sheet """
@@ -146,5 +155,5 @@ class ExcelHandler():
                 except KeyError:
                     pass
                 else:
-                    field.write(self.sheet, row, value)
+                    field.write(self.workbook, self.sheet, row, value)
             row += 1

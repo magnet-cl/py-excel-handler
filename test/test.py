@@ -74,7 +74,7 @@ class TestExcelHandlerCase(unittest.TestCase):
 
         rows = [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
 
-        workbook = ExcelHandler(path='test_write.xls', mode='w')
+        workbook = ExcelHandler(path='test_write.xlsx', mode='w')
         workbook.add_sheet(name='Attendance')
         workbook.write_rows(rows)
         workbook.save()
@@ -120,7 +120,7 @@ class TestCustomExcelHandler(unittest.TestCase):
                 self.assertEqual(read_value, expected_value)
 
     def test_write(self):
-        eh = MyExcelHandler(path='test/test_out.xls', mode='w')
+        eh = MyExcelHandler(path='test/test_out.xlsx', mode='w')
         eh.add_sheet(name='Data')
 
         data = [{
@@ -147,7 +147,7 @@ class TestCustomExcelHandler(unittest.TestCase):
         eh.write(data, set_titles=True)
         eh.save()
 
-        eh = MyExcelHandler(path='test/test_out.xls', mode='r')
+        eh = MyExcelHandler(path='test/test_out.xlsx', mode='r')
 
         in_data = eh.read(skip_titles=True)
         self.assertEqual(len(in_data), 3)
