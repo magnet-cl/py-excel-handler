@@ -74,7 +74,7 @@ class TestExcelHandlerCase(unittest.TestCase):
 
         rows = [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
 
-        workbook = ExcelHandler(path='test_write.xlsx', mode='w')
+        workbook = ExcelHandler(path='test/test_write.xlsx', mode='w')
         workbook.add_sheet(name='Attendance')
         workbook.write_rows(rows)
         workbook.save()

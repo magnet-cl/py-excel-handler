@@ -36,6 +36,6 @@ nosetests.xml
 
 .env
 
-test/test_write.xls
-test/test_out.xls
+test/test_write.xlsx
+test/test_out.xlsx
 test/.~*

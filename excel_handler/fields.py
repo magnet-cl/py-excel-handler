@@ -18,7 +18,9 @@ class Field(object):
             self.default = None
 
         if 'width' in kwargs:
-            self.width = (kwargs['width'] + 1) * 256
+            # xlwt format size
+            # self.width = (kwargs['width'] + 1) * 256
+            self.width = kwargs['width']
         else:
             self.width = None
 
@@ -56,6 +58,7 @@ class Field(object):
         if self.width:
             # xlwt format size
             # sheet.col(self.col).width = self.width
+            print self.width
             sheet.set_column(self.col, self.col, self.width)
 
 
