@@ -158,7 +158,6 @@ class ExcelHandler():
         # set format
         for field_name, field in self.fieldname_to_field.items():
             field.set_format(self.workbook, self.sheet)
-        row = 1
 
         for row_data in data:
             for field_name, value in row_data.items():
