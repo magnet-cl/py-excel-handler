@@ -139,6 +139,9 @@ class ExcelHandler():
         # self.workbook.save(self.path)
         self.workbook.close()
 
+    def set_title_format(self, formt):
+        pass
+
     def write_rows(self, rows):
         """ Write rows in the current sheet """
 
@@ -151,8 +154,11 @@ class ExcelHandler():
 
         # set titles
         if set_titles:
+            formt = self.workbook.add_format()
+            self.set_title_format(formt)
+
             for field_name, field in self.fieldname_to_field.items():
-                self.sheet.write(0, field.col,  field.verbose_name)
+                self.sheet.write(0, field.col,  field.verbose_name, formt)
             row = 1
 
         # set format
