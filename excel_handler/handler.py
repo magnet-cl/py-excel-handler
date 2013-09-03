@@ -22,11 +22,26 @@ class ExcelHandlerMetaClass(type):
                 field.name = k
                 if field.verbose_name == "":
                     field.verbose_name = name
+                if field.col < 0:
+                    field._distance_from_last = field.col
+
                 fieldname_to_field[k] = field
 
         attrs['fieldname_to_field'] = fieldname_to_field
+
         sup = super(ExcelHandlerMetaClass, cls)
-        return sup.__new__(cls, name, bases, attrs)
+
+        this = sup.__new__(cls, name, bases, attrs)
+        field_count = len(fieldname_to_field)
+
+        for field_name, field in fieldname_to_field.items():
+            try:
+                if field._distance_from_last < 0:
+                    field.col = field_count + field._distance_from_last
+            except:
+                pass
+
+        return this
 
 
 class ExcelHandler():

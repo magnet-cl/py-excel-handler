@@ -14,8 +14,6 @@ class Field(object):
 
         if 'default' in kwargs:
             self.default = kwargs['default']
-        else:
-            self.default = None
 
         if 'width' in kwargs:
             # xlwt format size
@@ -30,7 +28,7 @@ class Field(object):
             self.verbose_name = ""
 
     def cast(self, value, book):
-        if value == '' and self.default:
+        if value == '' and hasattr(self, 'default'):
             return self.default
 
         if self.choices:
@@ -46,12 +44,16 @@ class Field(object):
         try:
             return self.cast_method(value)
         except ValueError, error:
-            error.args += (self.name,)
+            error.args += (self.name, value)
             raise ValueError(error)
 
     def write(self, workbook, sheet, row, value):
         if self.choices:
-            value = self.choices[value]
+            try:
+                value = self.choices[value]
+            except KeyError, error:
+                if value is not None:
+                    raise KeyError(error)
 
         sheet.write(row, self.col,  value)
 
@@ -77,18 +79,24 @@ class BooleanField(Field):
 class CharField(Field):
     def __init__(self, col, *args, **kwargs):
         super(CharField, self).__init__(col, *args, **kwargs)
-        self.cast_method = str
+        self.cast_method = unicode
 
 
 class DateTimeField(Field):
+    def __init__(self, *args, **kwargs):
+        self.tzinfo = kwargs.pop('tzinfo', None)
+
+        super(DateTimeField, self).__init__(*args, **kwargs)
+
     def cast(self, value, workbook):
-        if value == '' and self.default:
+        if value == '' and hasattr(self, 'default'):
             if callable(self.default):
                 return self.default()
             return self.default
 
         date_tuple = xlrd.xldate_as_tuple(value, datemode=workbook.datemode)
-        return datetime.datetime(*date_tuple[:6])
+        date = datetime.datetime(*date_tuple[:6])
+        return date.replace(tzinfo=self.tzinfo)
 
     def write(self, workbook, sheet, row, value):
         # xlwt date format
@@ -97,6 +105,8 @@ class DateTimeField(Field):
         date_format = workbook.add_format(
             {'num_format': 'MM/DD/YYYY HH:MM:SS'}
         )
+        if value:
+            value = value.replace(tzinfo=None)
         sheet.write(row, self.col,  value, date_format)
 
     def set_format(self, workbook, sheet):
@@ -107,7 +117,7 @@ class DateTimeField(Field):
 
 class DateField(DateTimeField):
     def cast(self, value, workbook):
-        if value == '' and self.default:
+        if value == '' and hasattr(self, 'default'):
             if callable(self.default):
                 return self.default()
             return self.default
