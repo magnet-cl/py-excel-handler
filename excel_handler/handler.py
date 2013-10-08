@@ -125,12 +125,14 @@ class ExcelHandler():
 
         self.workbook.save(self.path)
 
-    def write_rows(self, rows):
+    def write_rows(self, rows, col_offset=0, row_offset=0):
         """ Write rows in the current sheet """
 
         for x, row in enumerate(rows):
+            row_x = row_offset + x
             for y, value in enumerate(row):
-                self.sheet.write(x, y, value)
+                row_y = row_offset + y
+                self.sheet.write(row_x, row_y, value)
 
     def write(self, data, set_titles=False):
         row = 0
