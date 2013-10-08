@@ -1,6 +1,6 @@
 """ This document defines the excel_handler module """
 import xlrd
-import xlwt
+import xlsxwriter
 from fields import Field
 
 
@@ -11,17 +11,37 @@ class FieldNotFound(Exception):
 class ExcelHandlerMetaClass(type):
     def __new__(cls, name, bases, attrs):
         fieldname_to_field = {}
+
+        for base in bases[::-1]:
+            if hasattr(base, 'fieldname_to_field'):
+                fieldname_to_field.update(base.fieldname_to_field)
+
         for k, v in attrs.items():
             if isinstance(v, Field):
                 field = attrs.pop(k)
                 field.name = k
                 if field.verbose_name == "":
                     field.verbose_name = name
+                if field.col < 0:
+                    field._distance_from_last = field.col
+
                 fieldname_to_field[k] = field
 
         attrs['fieldname_to_field'] = fieldname_to_field
+
         sup = super(ExcelHandlerMetaClass, cls)
-        return sup.__new__(cls, name, bases, attrs)
+
+        this = sup.__new__(cls, name, bases, attrs)
+        field_count = len(fieldname_to_field)
+
+        for field_name, field in fieldname_to_field.items():
+            try:
+                if field._distance_from_last < 0:
+                    field.col = field_count + field._distance_from_last
+            except:
+                pass
+
+        return this
 
 
 class ExcelHandler():
@@ -43,12 +63,19 @@ class ExcelHandler():
             self.sheet = self.workbook.sheet_by_index(0)
         else:
             self.path = path
-            self.workbook = xlwt.Workbook()
+
+            # xlwt woorkbook
+            # self.workbook = xlwt.Workbook()
+
+            self.workbook = xlsxwriter.Workbook(self.path)
 
         self.parser = None
 
     def add_sheet(self, name):
-        self.sheet = self.workbook.add_sheet(name)
+        # xlwt
+        # self.sheet = self.workbook.add_sheet(name)
+
+        self.sheet = self.workbook.add_worksheet(name)
 
     def set_sheet(self, sheet_index):
         """ sets the current sheet with the given sheet_index """
@@ -123,7 +150,12 @@ class ExcelHandler():
     def save(self):
         """ Save document """
 
-        self.workbook.save(self.path)
+        # xlwt save
+        # self.workbook.save(self.path)
+        self.workbook.close()
+
+    def set_title_format(self, formt):
+        pass
 
     def write_rows(self, rows, col_offset=0, row_offset=0):
         """ Write rows in the current sheet """
@@ -136,10 +168,19 @@ class ExcelHandler():
 
     def write(self, data, set_titles=False):
         row = 0
+
+        # set titles
         if set_titles:
+            formt = self.workbook.add_format()
+            self.set_title_format(formt)
+
             for field_name, field in self.fieldname_to_field.items():
-                self.sheet.write(0, field.col,  field.verbose_name)
+                self.sheet.write(0, field.col,  field.verbose_name, formt)
             row = 1
+
+        # set format
+        for field_name, field in self.fieldname_to_field.items():
+            field.set_format(self.workbook, self.sheet)
 
         for row_data in data:
             for field_name, value in row_data.items():
@@ -148,5 +189,5 @@ class ExcelHandler():
                 except KeyError:
                     pass
                 else:
-                    field.write(self.sheet, row, value)
+                    field.write(self.workbook, self.sheet, row, value)
             row += 1
