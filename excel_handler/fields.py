@@ -2,6 +2,10 @@ import xlrd
 import datetime
 
 
+class MissingArgumentException(Exception):
+    pass
+
+
 class Field(object):
     def __init__(self, col, **kwargs):
         self.col = col
@@ -47,6 +51,9 @@ class Field(object):
             error.args += (self.name, value)
             raise ValueError(error)
 
+    def prepare_read(self):
+        pass
+
     def write(self, workbook, sheet, row, value):
         if self.choices:
             try:
@@ -62,12 +69,6 @@ class Field(object):
             # xlwt format size
             # sheet.col(self.col).width = self.width
             sheet.set_column(self.col, self.col, self.width)
-
-
-class IntegerField(Field):
-    def __init__(self, col, *args, **kwargs):
-        super(IntegerField, self).__init__(col, *args, **kwargs)
-        self.cast_method = int
 
 
 class BooleanField(Field):
@@ -138,3 +139,75 @@ class DateField(DateTimeField):
         # xlwt format size
         # sheet.col(self.col).width = 4864  # 19 * 256
         sheet.set_column(self.col, self.col, 15)
+
+
+class DjangoModelField(Field):
+    """
+    This field translates excel values to django models and viceversa
+    """
+
+    def __init__(self, col, *args, **kwargs):
+        super(DjangoModelField, self).__init__(col, *args, **kwargs)
+
+        if 'lookup' in kwargs:
+            self.lookup = kwargs['lookup']
+        else:
+            self.lookup = 'pk'
+
+        if 'model' in kwargs:
+            self.model = kwargs['model']
+        else:
+            raise MissingArgumentException(
+                "Missing 'model' parameter in DjangoModelField")
+
+    def cast(self, value, workbook):
+        return self.model.objects.get(**{self.lookup: value})
+
+    def write(self, workbook, sheet, row, value):
+        value = getattr(value, self.lookup)
+        super(DjangoModelField, self).write(self, workbook, sheet, row, value)
+
+
+class ForeignKeyField(Field):
+    """
+    This field translates excel values to django foreign keys
+    """
+    def __init__(self, col, *args, **kwargs):
+        super(DjangoModelField, self).__init__(col, *args, **kwargs)
+
+        if 'lookup' in kwargs:
+            self.lookup = kwargs['lookup']
+        else:
+            self.lookup = 'pk'
+
+        if 'model' in kwargs:
+            self.model = kwargs['model']
+        else:
+            raise MissingArgumentException(
+                "Missing 'model' parameter in ForeignKeyField")
+
+    def cast(self, value, workbook):
+        if self.lookup == 'pk' or self.lookup == 'id':
+            return value
+        else:
+            return self.lookup_to_pk[value]
+
+    def write(self, workbook, sheet, row, value):
+        if self.lookup != 'pk' and self.lookup != 'id':
+            value = self.pk_to_lookup[value]
+
+        super(ForeignKeyField, self).write(self, workbook, sheet, row, value)
+
+    def prepare_read(self):
+        self.objects = self.model.objects.all().values_list('id', self.lookup)
+        self.pk_to_lookup = dict(self.objects)
+        self.lookup_to_pk = dict((y, x) for x, y in self.objects)
+
+    def prepare_write(self):
+        self.prepare_read()
+
+
+class IntegerField(Field):
+    def __init__(self, col, *args, **kwargs):
+        super(IntegerField, self).__init__(col, *args, **kwargs)
+        self.cast_method = int

@@ -121,6 +121,10 @@ class ExcelHandler():
         if skip_titles:
             row = 1
 
+        # prepare the read for each field
+        for field_name, field in self.fieldname_to_field.items():
+            field.prepare_write()
+
         while True:
             column_data = {}
             data_read = False
@@ -178,9 +182,10 @@ class ExcelHandler():
                 self.sheet.write(0, field.col,  field.verbose_name, formt)
             row = 1
 
-        # set format
+        # set format and prepare the write for each field
         for field_name, field in self.fieldname_to_field.items():
             field.set_format(self.workbook, self.sheet)
+            field.prepare_write()
 
         for row_data in data:
             for field_name, value in row_data.items():
