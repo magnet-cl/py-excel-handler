@@ -173,7 +173,7 @@ class ForeignKeyField(Field):
     This field translates excel values to django foreign keys
     """
     def __init__(self, col, *args, **kwargs):
-        super(DjangoModelField, self).__init__(col, *args, **kwargs)
+        super(ForeignKeyField, self).__init__(col, *args, **kwargs)
 
         if 'lookup' in kwargs:
             self.lookup = kwargs['lookup']
