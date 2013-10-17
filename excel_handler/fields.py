@@ -54,6 +54,9 @@ class Field(object):
     def prepare_read(self):
         pass
 
+    def prepare_write(self):
+        pass
+
     def write(self, workbook, sheet, row, value):
         if self.choices:
             try:
