@@ -190,6 +190,9 @@ class ForeignKeyField(Field):
                 "Missing 'model' parameter in ForeignKeyField")
 
     def cast(self, value, workbook):
+        if value == '' and hasattr(self, 'default'):
+            return self.default
+
         if self.lookup == 'pk' or self.lookup == 'id':
             return value
         else:
