@@ -83,7 +83,7 @@ class ExcelHandler():
 
     def set_sheet_by_name(self, sheet_name):
         """ sets the current sheet with the given sheet name """
-        self.sheet = self.workbook.set_sheet_by_name(sheet_name)
+        self.sheet = self.workbook.sheet_by_name(sheet_name)
 
     def read_rows(self, column_structure, starting_row=0, max_rows=-1):
         """ Reads the current sheet from the starting row to the last row or up

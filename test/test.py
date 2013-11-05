@@ -38,6 +38,23 @@ class InheritedExcelHandler(MyExcelHandler):
     pass
 
 
+class TestChangeSheetCase(unittest.TestCase):
+
+    def test_change_sheet_by_index(self):
+        eh = MyExcelHandler(path='test/test.xls', mode='r')
+        eh.set_sheet(0)
+
+        data = eh.read()
+        self.assertEqual(len(data), 3)
+
+    def test_change_sheet_by_name(self):
+        eh = MyExcelHandler(path='test/test.xls', mode='r')
+        eh.set_sheet_by_name('Sheet2')
+
+        data = eh.read()
+        self.assertEqual(len(data), 2)
+
+
 class TestExcelHandlerCase(unittest.TestCase):
 
     def test_read_rows(self):
