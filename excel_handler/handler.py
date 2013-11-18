@@ -132,6 +132,7 @@ class ExcelHandler():
         while True:
             column_data = {}
             data_read = False
+            continue_while = False
 
             for field_name, field in self.fieldname_to_field.items():
                 try:
@@ -156,10 +157,15 @@ class ExcelHandler():
                             raise
                         else:
                             print msg
+                            continue_while = True
+                        continue
                     else:
                         data_read = True
 
             row += 1
+
+            if continue_while:
+                continue
 
             if not data_read:
                 return data

@@ -5,6 +5,16 @@ import unittest
 import datetime
 
 
+class BrokenExcelHandler(ExcelHandler):
+    CHOICES = ((1, 'one'), (2, 'two'))
+    first = fields.IntegerField(
+        col=0, default=100, verbose_name="First"
+    )
+    second = fields.IntegerField(
+        col=1, choices=CHOICES, default=3, verbose_name="Second"
+    )
+
+
 class MyExcelHandler(ExcelHandler):
     CHOICES = ((1, 'one'), (2, 'two'), (3, 'three'), (4, 'four'),
                (5, 'five'), (6, 'six'), (7, 'seven'), (8, 'eight'))
@@ -101,6 +111,55 @@ class TestExcelHandlerCase(unittest.TestCase):
         workbook.save()
 
 
+class TestErrorHandler(unittest.TestCase):
+    def setUp(self):
+        super(TestErrorHandler, self).setUp()
+        self.excel_handler_cls = BrokenExcelHandler
+
+    def test_read(self):
+        eh = self.excel_handler_cls(path='test/test.xls', mode='r')
+        data = eh.read()
+
+        expected_data = [{
+            "first": 1,
+            "second": 2,
+        }, {
+            "first": 100,
+            "second": 3,
+        }]
+
+        self.assertEqual(len(expected_data), len(data))
+        for i, obj in enumerate(expected_data):
+            for k, expected_value in obj.items():
+                read_value = data[i][k]
+                self.assertEqual(read_value, expected_value)
+
+
+class TestEmptyColumns(unittest.TestCase):
+    def setUp(self):
+        super(TestEmptyColumns, self).setUp()
+        self.excel_handler_cls = BrokenExcelHandler
+
+    def test_read(self):
+        eh = self.excel_handler_cls(path='test/test.xls', mode='r')
+        eh.set_sheet_by_name('Sheet4')
+        data = eh.read()
+
+        expected_data = [{
+            "first": 1,
+            "second": 2,
+        }, {
+            "first": 101,
+            "second": 3,
+        }]
+
+        self.assertEqual(len(expected_data), len(data))
+        for i, obj in enumerate(expected_data):
+            for k, expected_value in obj.items():
+                read_value = data[i][k]
+                self.assertEqual(read_value, expected_value)
+
+
 class TestCustomExcelHandler(unittest.TestCase):
     def setUp(self):
         super(TestCustomExcelHandler, self).setUp()
@@ -139,6 +198,7 @@ class TestCustomExcelHandler(unittest.TestCase):
             "empty_last_fields": "",
         }]
 
+        self.assertEqual(len(expected_data), len(data))
         for i, obj in enumerate(expected_data):
             for k, expected_value in obj.items():
                 read_value = data[i][k]
