@@ -155,6 +155,7 @@ class ExcelHandler():
                         if stop_on_error:
                             raise
                         else:
+                            print msg
                             continue
                     data_read = True
 
