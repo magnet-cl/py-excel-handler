@@ -115,7 +115,7 @@ class ExcelHandler():
 
         return data
 
-    def read(self, skip_titles=False, stop_on_error=False):
+    def read(self, skip_titles=False, failfast=False, ignore_blank_rows=True):
         """
         Using the structure defined with the Field attributes, reads the excel
         and returns the data in an array of dicts
@@ -133,6 +133,7 @@ class ExcelHandler():
             column_data = {}
             data_read = False
             continue_while = False
+            blank_row = True
 
             for field_name, field in self.fieldname_to_field.items():
                 try:
@@ -144,6 +145,9 @@ class ExcelHandler():
                     if hasattr(field, 'default'):
                         column_data[field.name] = field.default
                 else:
+                    if value != "":
+                        blank_row = False
+
                     try:
                         column_data[field.name] = field.cast(value,
                                                              self.workbook)
@@ -153,14 +157,14 @@ class ExcelHandler():
                         msg = "Cannot read row {} : {}".format(row + 1,
                                                                err.args[0])
                         err.args = (msg,) + err.args[1:]
-                        if stop_on_error:
+                        if failfast:
                             raise
                         else:
                             print msg
                             continue_while = True
                         continue
-                    else:
-                        data_read = True
+
+                    data_read = True
 
             row += 1
 
@@ -170,7 +174,8 @@ class ExcelHandler():
             if not data_read:
                 return data
 
-            data.append(column_data)
+            if not blank_row or not ignore_blank_rows:
+                data.append(column_data)
 
         return data
 

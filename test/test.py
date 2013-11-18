@@ -123,9 +123,6 @@ class TestErrorHandler(unittest.TestCase):
         expected_data = [{
             "first": 1,
             "second": 2,
-        }, {
-            "first": 100,
-            "second": 3,
         }]
 
         self.assertEqual(len(expected_data), len(data))
@@ -135,9 +132,9 @@ class TestErrorHandler(unittest.TestCase):
                 self.assertEqual(read_value, expected_value)
 
 
-class TestEmptyColumns(unittest.TestCase):
+class TestEmptyRows(unittest.TestCase):
     def setUp(self):
-        super(TestEmptyColumns, self).setUp()
+        super(TestEmptyRows, self).setUp()
         self.excel_handler_cls = BrokenExcelHandler
 
     def test_read(self):
@@ -148,6 +145,28 @@ class TestEmptyColumns(unittest.TestCase):
         expected_data = [{
             "first": 1,
             "second": 2,
+        }, {
+            "first": 101,
+            "second": 3,
+        }]
+
+        self.assertEqual(len(expected_data), len(data))
+        for i, obj in enumerate(expected_data):
+            for k, expected_value in obj.items():
+                read_value = data[i][k]
+                self.assertEqual(read_value, expected_value)
+
+    def test_read_empty(self):
+        eh = self.excel_handler_cls(path='test/test.xls', mode='r')
+        eh.set_sheet_by_name('Sheet4')
+        data = eh.read(ignore_blank_rows=False)
+
+        expected_data = [{
+            "first": 1,
+            "second": 2,
+        }, {
+            "first": 100,
+            "second": 3,
         }, {
             "first": 101,
             "second": 3,
