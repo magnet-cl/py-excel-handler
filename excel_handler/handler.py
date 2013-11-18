@@ -115,7 +115,7 @@ class ExcelHandler():
 
         return data
 
-    def read(self, skip_titles=False):
+    def read(self, skip_titles=False, stop_on_error=False):
         """
         Using the structure defined with the Field attributes, reads the excel
         and returns the data in an array of dicts
@@ -152,7 +152,10 @@ class ExcelHandler():
                         msg = "Cannot read row {} : {}".format(row + 1,
                                                                err.args[0])
                         err.args = (msg,) + err.args[1:]
-                        raise
+                        if stop_on_error:
+                            raise
+                        else:
+                            continue
                     data_read = True
 
             row += 1
