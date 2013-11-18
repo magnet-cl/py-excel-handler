@@ -143,7 +143,16 @@ class ExcelHandler():
                     if hasattr(field, 'default'):
                         column_data[field.name] = field.default
                 else:
-                    column_data[field.name] = field.cast(value, self.workbook)
+                    try:
+                        column_data[field.name] = field.cast(value,
+                                                             self.workbook)
+                    except Exception as err:
+                        if not err.args:
+                            err.args = ('', )
+                        msg = "Cannot read row {} : {}".format(row,
+                                                               err.args[0])
+                        err.args = (msg,) + err.args[1:]
+                        raise
                     data_read = True
 
             row += 1
