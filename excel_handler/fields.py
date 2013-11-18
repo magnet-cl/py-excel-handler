@@ -196,7 +196,13 @@ class ForeignKeyField(Field):
         if self.lookup == 'pk' or self.lookup == 'id':
             return value
         else:
-            return self.lookup_to_pk[value]
+            try:
+                return self.lookup_to_pk[value]
+            except KeyError:
+                raise self.model.DoesNotExist(
+                    "%s matching query does not exist. "
+                    "Lookup parameters were %s" %
+                    (self.model._meta.object_name, {self.lookup: value}))
 
     def write(self, workbook, sheet, row, value):
         if self.lookup != 'pk' and self.lookup != 'id':
