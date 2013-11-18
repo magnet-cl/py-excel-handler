@@ -156,8 +156,8 @@ class ExcelHandler():
                             raise
                         else:
                             print msg
-                            continue
-                    data_read = True
+                    else:
+                        data_read = True
 
             row += 1
 
