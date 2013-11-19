@@ -2,10 +2,6 @@ import xlrd
 import datetime
 
 
-class MissingArgumentException(Exception):
-    pass
-
-
 class Field(object):
     def __init__(self, col, **kwargs):
         self.col = col
@@ -149,19 +145,12 @@ class DjangoModelField(Field):
     This field translates excel values to django models and viceversa
     """
 
-    def __init__(self, col, *args, **kwargs):
+    def __init__(self, col, model, lookup='pk', *args, **kwargs):
         super(DjangoModelField, self).__init__(col, *args, **kwargs)
 
-        if 'lookup' in kwargs:
-            self.lookup = kwargs['lookup']
-        else:
-            self.lookup = 'pk'
+        self.lookup = lookup
 
-        if 'model' in kwargs:
-            self.model = kwargs['model']
-        else:
-            raise MissingArgumentException(
-                "Missing 'model' parameter in DjangoModelField")
+        self.model = model
 
     def cast(self, value, workbook):
         return self.model.objects.get(**{self.lookup: value})
@@ -175,19 +164,14 @@ class ForeignKeyField(Field):
     """
     This field translates excel values to django foreign keys
     """
-    def __init__(self, col, *args, **kwargs):
+    def __init__(self, col, model, lookup='pk', default_on_lookup_fail=False,
+                 case_insensitive=False, *args, **kwargs):
         super(ForeignKeyField, self).__init__(col, *args, **kwargs)
 
-        self.lookup = kwargs.get('lookup', 'pk')
-
-        if 'model' in kwargs:
-            self.model = kwargs['model']
-        else:
-            raise MissingArgumentException(
-                "Missing 'model' parameter in ForeignKeyField")
-
-        self.default_on_lookup_fail = kwargs.get('default_on_lookup_fail',
-                                                 False)
+        self.lookup = lookup
+        self.model = model
+        self.default_on_lookup_fail = default_on_lookup_fail
+        self.case_insensitive = case_insensitive
 
     def cast(self, value, workbook):
         if value == '' and hasattr(self, 'default'):
@@ -214,13 +198,17 @@ class ForeignKeyField(Field):
 
     def prepare_read(self):
         self.objects = self.model.objects.all().values_list('id', self.lookup)
-        self.pk_to_lookup = dict(self.objects)
-        self.lookup_to_pk = dict((y, x) for x, y in self.objects)
 
         try:
             self.lookup_type = type(self.objects[0][1])
         except:
             self.lookup_type = str
+
+        self.pk_to_lookup = dict(self.objects)
+        if self.lookup_type == str:
+            self.lookup_to_pk = dict((y.lower(), x) for x, y in self.objects)
+        else:
+            self.lookup_to_pk = dict((y, x) for x, y in self.objects)
 
     def prepare_write(self):
         self.prepare_read()
