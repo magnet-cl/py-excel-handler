@@ -178,10 +178,7 @@ class ForeignKeyField(Field):
     def __init__(self, col, *args, **kwargs):
         super(ForeignKeyField, self).__init__(col, *args, **kwargs)
 
-        if 'lookup' in kwargs:
-            self.lookup = kwargs['lookup']
-        else:
-            self.lookup = 'pk'
+        self.lookup = kwargs.get('lookup', 'pk')
 
         if 'model' in kwargs:
             self.model = kwargs['model']
@@ -196,19 +193,18 @@ class ForeignKeyField(Field):
         if value == '' and hasattr(self, 'default'):
             return self.default
 
-        if self.lookup == 'pk' or self.lookup == 'id':
-            return value
-        else:
-            try:
-                return self.lookup_to_pk[value]
-            except KeyError:
-                msg = ("%s matching query does not exist. "
-                       "Lookup parameters were %s" %
-                       (self.model._meta.object_name, {self.lookup: value}))
-                if self.default_on_lookup_fail:
-                    return self.default
+        value = self.lookup_type(value)
+        try:
+            return self.lookup_to_pk[value]
+        except KeyError:
+            msg = ("%s matching query does not exist. "
+                   "Lookup parameters were %s" %
+                   (self.model._meta.object_name, {self.lookup: value}))
+            if self.default_on_lookup_fail:
+                print msg
+                return self.default
 
-                raise self.model.DoesNotExist(msg)
+            raise self.model.DoesNotExist(msg)
 
     def write(self, workbook, sheet, row, value):
         if self.lookup != 'pk' and self.lookup != 'id':
@@ -220,6 +216,11 @@ class ForeignKeyField(Field):
         self.objects = self.model.objects.all().values_list('id', self.lookup)
         self.pk_to_lookup = dict(self.objects)
         self.lookup_to_pk = dict((y, x) for x, y in self.objects)
+
+        try:
+            self.lookup_type = type(self.objects[0][1])
+        except:
+            self.lookup_type = str
 
     def prepare_write(self):
         self.prepare_read()
