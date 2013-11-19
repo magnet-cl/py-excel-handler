@@ -178,6 +178,9 @@ class ForeignKeyField(Field):
             return self.default
 
         value = self.lookup_type(value)
+        if self.case_insensitive:
+            value = value.lower()
+
         try:
             return self.lookup_to_pk[value]
         except KeyError:
@@ -205,7 +208,8 @@ class ForeignKeyField(Field):
             self.lookup_type = str
 
         self.pk_to_lookup = dict(self.objects)
-        if self.lookup_type == str:
+
+        if self.case_insensitive:
             self.lookup_to_pk = dict((y.lower(), x) for x, y in self.objects)
         else:
             self.lookup_to_pk = dict((y, x) for x, y in self.objects)
