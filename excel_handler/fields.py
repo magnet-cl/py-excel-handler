@@ -189,6 +189,9 @@ class ForeignKeyField(Field):
             raise MissingArgumentException(
                 "Missing 'model' parameter in ForeignKeyField")
 
+        self.default_on_lookup_fail = kwargs.get('default_on_lookup_fail',
+                                                 False)
+
     def cast(self, value, workbook):
         if value == '' and hasattr(self, 'default'):
             return self.default
@@ -199,6 +202,9 @@ class ForeignKeyField(Field):
             try:
                 return self.lookup_to_pk[value]
             except KeyError:
+                if self.default_on_lookup_fail:
+                    return self.default
+
                 raise self.model.DoesNotExist(
                     "%s matching query does not exist. "
                     "Lookup parameters were %s" %
