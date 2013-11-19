@@ -162,7 +162,7 @@ class ExcelHandler():
                         else:
                             print msg
                             continue_while = True
-                        continue
+                        break
 
                     data_read = True
 
