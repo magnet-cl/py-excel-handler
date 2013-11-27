@@ -197,7 +197,7 @@ class ForeignKeyField(Field):
         if self.lookup != 'pk' and self.lookup != 'id' and value is not None:
             value = self.pk_to_lookup[value]
 
-        super(ForeignKeyField, self).write(self, workbook, sheet, row, value)
+        super(ForeignKeyField, self).write(workbook, sheet, row, value)
 
     def prepare_read(self):
         self.objects = self.model.objects.all().values_list('id', self.lookup)
