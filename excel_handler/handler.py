@@ -81,6 +81,10 @@ class ExcelHandler():
         """ sets the current sheet with the given sheet_index """
         self.sheet = self.workbook.sheet_by_index(sheet_index)
 
+    def set_sheet_by_name(self, sheet_name):
+        """ sets the current sheet with the given sheet name """
+        self.sheet = self.workbook.sheet_by_name(sheet_name)
+
     def read_rows(self, column_structure, starting_row=0, max_rows=-1):
         """ Reads the current sheet from the starting row to the last row or up
         to a max of max_rows if greater than 0
@@ -111,7 +115,7 @@ class ExcelHandler():
 
         return data
 
-    def read(self, skip_titles=False):
+    def read(self, skip_titles=False, failfast=False, ignore_blank_rows=True):
         """
         Using the structure defined with the Field attributes, reads the excel
         and returns the data in an array of dicts
@@ -128,6 +132,8 @@ class ExcelHandler():
         while True:
             column_data = {}
             data_read = False
+            continue_while = False
+            blank_row = True
 
             for field_name, field in self.fieldname_to_field.items():
                 try:
@@ -139,15 +145,37 @@ class ExcelHandler():
                     if hasattr(field, 'default'):
                         column_data[field.name] = field.default
                 else:
-                    column_data[field.name] = field.cast(value, self.workbook)
+                    if value != "":
+                        blank_row = False
+
+                    try:
+                        column_data[field.name] = field.cast(value,
+                                                             self.workbook)
+                    except Exception as err:
+                        if not err.args:
+                            err.args = ('', )
+                        msg = "Cannot read row {} : {}".format(row + 1,
+                                                               err.args[0])
+                        err.args = (msg,) + err.args[1:]
+                        if failfast:
+                            raise
+                        else:
+                            print msg
+                            continue_while = True
+                        break
+
                     data_read = True
 
             row += 1
 
+            if continue_while:
+                continue
+
             if not data_read:
                 return data
 
-            data.append(column_data)
+            if not blank_row or not ignore_blank_rows:
+                data.append(column_data)
 
         return data
 

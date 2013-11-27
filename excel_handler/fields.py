@@ -2,10 +2,6 @@ import xlrd
 import datetime
 
 
-class MissingArgumentException(Exception):
-    pass
-
-
 class Field(object):
     def __init__(self, col, **kwargs):
         self.col = col
@@ -149,19 +145,12 @@ class DjangoModelField(Field):
     This field translates excel values to django models and viceversa
     """
 
-    def __init__(self, col, *args, **kwargs):
+    def __init__(self, col, model, lookup='pk', *args, **kwargs):
         super(DjangoModelField, self).__init__(col, *args, **kwargs)
 
-        if 'lookup' in kwargs:
-            self.lookup = kwargs['lookup']
-        else:
-            self.lookup = 'pk'
+        self.lookup = lookup
 
-        if 'model' in kwargs:
-            self.model = kwargs['model']
-        else:
-            raise MissingArgumentException(
-                "Missing 'model' parameter in DjangoModelField")
+        self.model = model
 
     def cast(self, value, workbook):
         return self.model.objects.get(**{self.lookup: value})
@@ -175,25 +164,34 @@ class ForeignKeyField(Field):
     """
     This field translates excel values to django foreign keys
     """
-    def __init__(self, col, *args, **kwargs):
+    def __init__(self, col, model, lookup='pk', default_on_lookup_fail=False,
+                 case_insensitive=False, *args, **kwargs):
         super(ForeignKeyField, self).__init__(col, *args, **kwargs)
 
-        if 'lookup' in kwargs:
-            self.lookup = kwargs['lookup']
-        else:
-            self.lookup = 'pk'
-
-        if 'model' in kwargs:
-            self.model = kwargs['model']
-        else:
-            raise MissingArgumentException(
-                "Missing 'model' parameter in ForeignKeyField")
+        self.lookup = lookup
+        self.model = model
+        self.default_on_lookup_fail = default_on_lookup_fail
+        self.case_insensitive = case_insensitive
 
     def cast(self, value, workbook):
-        if self.lookup == 'pk' or self.lookup == 'id':
-            return value
-        else:
+        if value == '' and hasattr(self, 'default'):
+            return self.default
+
+        value = self.lookup_type(value)
+        if self.case_insensitive:
+            value = value.lower()
+
+        try:
             return self.lookup_to_pk[value]
+        except KeyError:
+            msg = ("%s matching query does not exist. "
+                   "Lookup parameters were %s" %
+                   (self.model._meta.object_name, {self.lookup: value}))
+            if self.default_on_lookup_fail:
+                print msg
+                return self.default
+
+            raise self.model.DoesNotExist(msg)
 
     def write(self, workbook, sheet, row, value):
         if self.lookup != 'pk' and self.lookup != 'id' and value is not None:
@@ -203,8 +201,18 @@ class ForeignKeyField(Field):
 
     def prepare_read(self):
         self.objects = self.model.objects.all().values_list('id', self.lookup)
+
+        try:
+            self.lookup_type = type(self.objects[0][1])
+        except:
+            self.lookup_type = str
+
         self.pk_to_lookup = dict(self.objects)
-        self.lookup_to_pk = dict((y, x) for x, y in self.objects)
+
+        if self.case_insensitive:
+            self.lookup_to_pk = dict((y.lower(), x) for x, y in self.objects)
+        else:
+            self.lookup_to_pk = dict((y, x) for x, y in self.objects)
 
     def prepare_write(self):
         self.prepare_read()

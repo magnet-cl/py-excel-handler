@@ -1,0 +1,8 @@
+language: python
+# supported versions
+python:
+ - 2.7
+install:
+ - python setup.py install
+script: 
+ - python test/test.py
