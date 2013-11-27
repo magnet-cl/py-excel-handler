@@ -196,7 +196,7 @@ class ForeignKeyField(Field):
             return self.lookup_to_pk[value]
 
     def write(self, workbook, sheet, row, value):
-        if self.lookup != 'pk' and self.lookup != 'id':
+        if self.lookup != 'pk' and self.lookup != 'id' and value is not None:
             value = self.pk_to_lookup[value]
 
         super(ForeignKeyField, self).write(self, workbook, sheet, row, value)
