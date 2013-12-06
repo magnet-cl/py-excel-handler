@@ -154,8 +154,8 @@ class ExcelHandler():
                     except Exception as err:
                         if not err.args:
                             err.args = ('', )
-                        msg = "Cannot read row {} : {}".format(row + 1,
-                                                               err.args[0])
+                        msg = "Cannot read row {} : Column{}, {}".format(
+                            row + 1, field.name, err.args[0])
                         err.args = (msg,) + err.args[1:]
                         if failfast:
                             raise
