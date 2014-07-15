@@ -27,11 +27,6 @@ class Field(object):
         else:
             self.verbose_name = ""
 
-        if 'readonly' in kwargs:
-            self.readonly = kwargs['readonly']
-        else:
-            self.readonly = False
-
     def cast(self, value, book):
         if value == '' and hasattr(self, 'default'):
             return self.default
@@ -59,9 +54,6 @@ class Field(object):
         pass
 
     def write(self, workbook, sheet, row, value):
-        if self.readonly:
-            return
-
         if self.choices:
             try:
                 value = self.choices[value]
@@ -107,9 +99,6 @@ class DateTimeField(Field):
         return date.replace(tzinfo=self.tzinfo)
 
     def write(self, workbook, sheet, row, value):
-        if self.readonly:
-            return
-
         # xlwt date format
         # xf = xlswriter.easyxf(num_format_str='MM/DD/YYYY HH:MM:SS')
         # sheet.write(row, self.col,  value, xf)
@@ -137,9 +126,6 @@ class DateField(DateTimeField):
         return datetime.date(*date_tuple[:3])
 
     def write(self, workbook, sheet, row, value):
-        if self.readonly:
-            return
-
         # xlwt date format
         # xf = xlswriter.easyxf(num_format_str='MM/DD/YYYY')
         # sheet.write(row, self.col,  value, xf)
@@ -170,9 +156,6 @@ class DjangoModelField(Field):
         return self.model.objects.get(**{self.lookup: value})
 
     def write(self, workbook, sheet, row, value):
-        if self.readonly:
-            return
-
         value = getattr(value, self.lookup)
         super(DjangoModelField, self).write(self, workbook, sheet, row, value)
 
@@ -211,9 +194,6 @@ class ForeignKeyField(Field):
             raise self.model.DoesNotExist(msg)
 
     def write(self, workbook, sheet, row, value):
-        if self.readonly:
-            return
-
         if self.lookup != 'pk' and self.lookup != 'id' and value is not None:
             value = self.pk_to_lookup[value]
 
