@@ -189,19 +189,27 @@ class ExcelHandler():
     def set_title_format(self, formt):
         pass
 
+    def set_row_format(self, formt):
+        pass
+
     def write_rows(self, rows, col_offset=0, row_offset=0, set_titles=False):
         """ Write rows in the current sheet """
 
+        title_formt = self.workbook.add_format()
+        row_formt = self.workbook.add_format()
+        self.set_row_format(row_formt)
+
         if set_titles:
-            formt = self.workbook.add_format()
-            self.set_title_format(formt)
+            self.set_title_format(title_formt)
         else:
-            formt = None
+            title_formt = row_formt
 
         for y, row in enumerate(rows):
             # set titles
-            if y > 0:
-                formt = None
+            if y == 0:
+                formt = title_formt
+            else:
+                formt = row_formt
 
             row_y = row_offset + y
 
