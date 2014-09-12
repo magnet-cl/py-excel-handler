@@ -198,15 +198,17 @@ class ExcelHandler():
         else:
             formt = None
 
-        for x, row in enumerate(rows):
+        for y, row in enumerate(rows):
             # set titles
-            if x > 0:
+            if y > 0:
                 formt = None
 
-            row_x = col_offset + x
-            for y, value in enumerate(row):
-                row_y = row_offset + y
-                self.sheet.write(row_x, row_y, value, formt)
+            row_y = row_offset + y
+
+            for x, value in enumerate(row):
+                row_x = col_offset + x
+
+                self.sheet.write(row_y, row_x, value, formt)
 
     def write_columns(self, columns, row_offset=0, col_offset=0,
                       set_titles=False):
@@ -218,15 +220,16 @@ class ExcelHandler():
         else:
             formt = None
 
-        for y, column in enumerate(columns):
+        for x, column in enumerate(columns):
             # set titles
-            if y > 0:
+            if x > 0:
                 formt = None
 
-            column_y = row_offset + y
-            for x, value in enumerate(column):
-                column_x = col_offset + x
-                self.sheet.write(column_x, column_y, value, formt)
+            column_x = col_offset + x
+
+            for y, value in enumerate(column):
+                column_y = row_offset + y
+                self.sheet.write(column_y, column_x, value, formt)
 
     def write(self, data, set_titles=False):
         row = 0
