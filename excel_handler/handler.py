@@ -203,12 +203,12 @@ class ExcelHandler():
             if x > 0:
                 formt = None
 
-            row_x = row_offset + x
+            row_x = col_offset + x
             for y, value in enumerate(row):
                 row_y = row_offset + y
                 self.sheet.write(row_x, row_y, value, formt)
 
-    def write_columns(self, columns, col_offset=0, column_offset=0,
+    def write_columns(self, columns, row_offset=0, col_offset=0,
                       set_titles=False):
         """ Write columns in the current sheet """
 
@@ -223,9 +223,9 @@ class ExcelHandler():
             if y > 0:
                 formt = None
 
-            column_y = column_offset + y
+            column_y = row_offset + y
             for x, value in enumerate(column):
-                column_x = column_offset + x
+                column_x = col_offset + x
                 self.sheet.write(column_x, column_y, value, formt)
 
     def write(self, data, set_titles=False):
