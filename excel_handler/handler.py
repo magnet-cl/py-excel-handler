@@ -208,6 +208,26 @@ class ExcelHandler():
                 row_y = row_offset + y
                 self.sheet.write(row_x, row_y, value, formt)
 
+    def write_columns(self, columns, col_offset=0, column_offset=0,
+                      set_titles=False):
+        """ Write columns in the current sheet """
+
+        if set_titles:
+            formt = self.workbook.add_format()
+            self.set_title_format(formt)
+        else:
+            formt = None
+
+        for y, column in enumerate(columns):
+            # set titles
+            if y > 0:
+                formt = None
+
+            column_y = column_offset + y
+            for x, value in enumerate(column):
+                column_x = column_offset + x
+                self.sheet.write(column_x, column_y, value, formt)
+
     def write(self, data, set_titles=False):
         row = 0
 
