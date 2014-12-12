@@ -8,6 +8,10 @@ class FieldNotFound(Exception):
     pass
 
 
+class ReapeatedColumn(Exception):
+    pass
+
+
 class ExcelHandlerMetaClass(type):
     def __new__(cls, name, bases, attrs):
         fieldname_to_field = {}
@@ -15,6 +19,8 @@ class ExcelHandlerMetaClass(type):
         for base in bases[::-1]:
             if hasattr(base, 'fieldname_to_field'):
                 fieldname_to_field.update(base.fieldname_to_field)
+
+        cols = {}
 
         for k, v in attrs.items():
             if isinstance(v, Field):
@@ -24,6 +30,13 @@ class ExcelHandlerMetaClass(type):
                     field.verbose_name = name
                 if field.col < 0:
                     field._distance_from_last = field.col
+
+                if field.col in cols:
+                    raise ReapeatedColumn(
+                        '{} collides with field {} on column {}'.format(
+                            field.name, cols[field.col].name, field.col))
+
+                cols[field.col] = field
 
                 fieldname_to_field[k] = field
 
