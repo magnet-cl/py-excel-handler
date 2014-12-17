@@ -129,7 +129,7 @@ class TimeField(Field):
 
         value = value - int(value)
         date_tuple = xlrd.xldate_as_tuple(value, datemode=workbook.datemode)
-        time = datetime.time(*date_tuple[:3])
+        time = datetime.time(*date_tuple[3:])
         return time.replace(tzinfo=self.tzinfo)
 
     def write(self, workbook, sheet, row, value):
