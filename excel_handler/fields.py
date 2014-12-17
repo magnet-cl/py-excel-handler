@@ -115,6 +115,37 @@ class DateTimeField(Field):
         sheet.set_column(self.col, self.col, 18)
 
 
+class TimeField(Field):
+    def __init__(self, *args, **kwargs):
+        self.tzinfo = kwargs.pop('tzinfo', None)
+
+        super(TimeField, self).__init__(*args, **kwargs)
+
+    def cast(self, value, workbook):
+        if value == '' and hasattr(self, 'default'):
+            if callable(self.default):
+                return self.default()
+            return self.default
+
+        value = value - int(value)
+        date_tuple = xlrd.xldate_as_tuple(value, datemode=workbook.datemode)
+        time = datetime.time(*date_tuple[:3])
+        return time.replace(tzinfo=self.tzinfo)
+
+    def write(self, workbook, sheet, row, value):
+        date_format = workbook.add_format(
+            {'num_format': 'HH:MM:SS'}
+        )
+        if value:
+            value = value.replace(tzinfo=None)
+        sheet.write(row, self.col,  value, date_format)
+
+    def set_format(self, workbook, sheet):
+        # xlwt format size
+        # sheet.col(self.col).width = 4864  # 19 * 256
+        sheet.set_column(self.col, self.col, 18)
+
+
 class DateField(DateTimeField):
     def cast(self, value, workbook):
         if value == '' and hasattr(self, 'default'):
