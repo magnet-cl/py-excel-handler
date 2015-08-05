@@ -153,7 +153,28 @@ class DateField(DateTimeField):
                 return self.default()
             return self.default
 
-        date_tuple = xlrd.xldate_as_tuple(value, datemode=workbook.datemode)
+        try:
+            # try to parse date in excel format
+            date_tuple = xlrd.xldate_as_tuple(
+                value,
+                datemode=workbook.datemode
+            )
+        except ValueError:
+            # try to parse dates like dd/mm/YYYY
+            if len(value) <= 10:
+
+                if '/' in value:
+                    date_tuple = value.split('/')
+                elif '-' in value:
+                    date_tuple = value.split('-')
+
+                date_tuple = [int(x) for x in date_tuple]
+
+                if date_tuple[2] > 1000:
+                    date_tuple.reverse()
+            else:
+                raise
+
         return datetime.date(*date_tuple[:3])
 
     def write(self, workbook, sheet, row, value):
