@@ -134,7 +134,8 @@ class ExcelHandler():
 
         return data
 
-    def read(self, skip_titles=False, failfast=False, ignore_blank_rows=True):
+    def read(self, skip_titles=False, failfast=False, ignore_blank_rows=True,
+             include_rowx=False):
         """
         Using the structure defined with the Field attributes, reads the excel
         and returns the data in an array of dicts
@@ -184,6 +185,9 @@ class ExcelHandler():
                         break
 
                     data_read = True
+
+                if include_rowx:
+                    column_data['rowx'] = row
 
             row += 1
 
