@@ -274,3 +274,9 @@ class IntegerField(Field):
     def __init__(self, col, *args, **kwargs):
         super(IntegerField, self).__init__(col, *args, **kwargs)
         self.cast_method = int
+
+
+class FloatField(Field):
+    def __init__(self, col, *args, **kwargs):
+        super(FloatField, self).__init__(col, *args, **kwargs)
+        self.cast_method = float
