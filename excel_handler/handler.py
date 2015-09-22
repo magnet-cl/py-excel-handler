@@ -271,7 +271,12 @@ class ExcelHandler():
             self.set_title_format(formt)
 
             for field_name, field in self.fieldname_to_field.items():
-                self.sheet.write(0, field.col,  field.verbose_name, formt)
+                self.sheet.write(
+                    0,
+                    field.col,
+                    unicode(field.verbose_name),
+                    formt
+                )
             row = 1
 
         # set format and prepare the write for each field

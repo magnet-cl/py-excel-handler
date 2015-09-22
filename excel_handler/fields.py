@@ -61,6 +61,9 @@ class Field(object):
                 if value is not None:
                     raise KeyError(error)
 
+        if hasattr(value, 'translate'):
+            value = unicode(value)
+
         sheet.write(row, self.col,  value)
 
     def set_format(self, workbook, sheet):
