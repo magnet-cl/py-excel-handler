@@ -4,6 +4,8 @@ import xlsxwriter
 import datetime
 from fields import Field
 
+from collections import namedtuple
+
 
 class FieldNotFound(Exception):
     pass
@@ -11,6 +13,8 @@ class FieldNotFound(Exception):
 
 class ReapeatedColumn(Exception):
     pass
+
+RowError = namedtuple('RowError', 'row, row_data, error, field_name')
 
 
 class ExcelHandlerMetaClass(type):
@@ -135,12 +139,13 @@ class ExcelHandler():
         return data
 
     def read(self, skip_titles=False, failfast=False, ignore_blank_rows=True,
-             include_rowx=False):
+             include_rowx=False, return_errors=False):
         """
         Using the structure defined with the Field attributes, reads the excel
         and returns the data in an array of dicts
         """
         data = []
+        errors = []
         row = 0
         if skip_titles:
             row = 1
@@ -150,7 +155,7 @@ class ExcelHandler():
             field.prepare_write()
 
         while True:
-            column_data = {}
+            row_data = {}
             data_read = False
             continue_while = False
             blank_row = True
@@ -163,14 +168,17 @@ class ExcelHandler():
                     ).value
                 except:
                     if hasattr(field, 'default'):
-                        column_data[field.name] = field.default
+                        row_data[field.name] = field.default
                 else:
                     if value != "":
                         blank_row = False
 
                     try:
-                        column_data[field.name] = field.cast(value,
-                                                             self.workbook)
+                        row_data[field.name] = field.cast(
+                            value,
+                            self.workbook,
+                            row_data,
+                        )
                     except Exception as err:
                         if not err.args:
                             err.args = ('', )
@@ -180,14 +188,25 @@ class ExcelHandler():
                         if failfast:
                             raise
                         else:
-                            print msg
+                            row_data[field.name] = value
+                            if return_errors:
+                                errors.append(
+                                    RowError(
+                                        row=row,
+                                        row_data=row_data,
+                                        error=msg,
+                                        field_name=field_name,
+                                    )
+                                )
+                            else:
+                                print msg
                             continue_while = True
                         break
 
                     data_read = True
 
                 if include_rowx:
-                    column_data['rowx'] = row
+                    row_data['rowx'] = row
 
             row += 1
 
@@ -195,11 +214,15 @@ class ExcelHandler():
                 continue
 
             if not data_read:
+                if return_errors:
+                    return data, errors
                 return data
 
             if not blank_row or not ignore_blank_rows:
-                data.append(column_data)
+                data.append(row_data)
 
+        if return_errors:
+            return data, errors
         return data
 
     def save(self):

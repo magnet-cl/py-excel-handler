@@ -27,7 +27,7 @@ class Field(object):
         else:
             self.verbose_name = ""
 
-    def cast(self, value, book):
+    def cast(self, value, book, row_data):
         if value == '' and hasattr(self, 'default'):
             return self.default
 
@@ -91,7 +91,7 @@ class DateTimeField(Field):
 
         super(DateTimeField, self).__init__(*args, **kwargs)
 
-    def cast(self, value, workbook):
+    def cast(self, value, workbook, row_data):
         if value == '' and hasattr(self, 'default'):
             if callable(self.default):
                 return self.default()
@@ -124,7 +124,7 @@ class TimeField(Field):
 
         super(TimeField, self).__init__(*args, **kwargs)
 
-    def cast(self, value, workbook):
+    def cast(self, value, workbook, row_data):
         if value == '' and hasattr(self, 'default'):
             if callable(self.default):
                 return self.default()
@@ -150,7 +150,7 @@ class TimeField(Field):
 
 
 class DateField(DateTimeField):
-    def cast(self, value, workbook):
+    def cast(self, value, workbook, row_data):
         if value == '' and hasattr(self, 'default'):
             if callable(self.default):
                 return self.default()
@@ -207,7 +207,7 @@ class DjangoModelField(Field):
 
         self.model = model
 
-    def cast(self, value, workbook):
+    def cast(self, value, workbook, row_data):
         return self.model.objects.get(**{self.lookup: value})
 
     def write(self, workbook, sheet, row, value):
@@ -220,15 +220,17 @@ class ForeignKeyField(Field):
     This field translates excel values to django foreign keys
     """
     def __init__(self, col, model, lookup='pk', default_on_lookup_fail=False,
-                 case_insensitive=False, *args, **kwargs):
+                 case_insensitive=False, on_lookup_fail=None, *args, **kwargs):
+
         super(ForeignKeyField, self).__init__(col, *args, **kwargs)
 
         self.lookup = lookup
         self.model = model
         self.default_on_lookup_fail = default_on_lookup_fail
         self.case_insensitive = case_insensitive
+        self.on_lookup_fail = on_lookup_fail
 
-    def cast(self, value, workbook):
+    def cast(self, value, workbook, row_data):
         if value == '' and hasattr(self, 'default'):
             return self.default
 
@@ -242,8 +244,10 @@ class ForeignKeyField(Field):
             msg = ("%s matching query does not exist. "
                    "Lookup parameters were %s" %
                    (self.model._meta.object_name, {self.lookup: value}))
+            if self.on_lookup_fail:
+                return self.on_lookup_fail(row_data, value)
+
             if self.default_on_lookup_fail:
-                print msg
                 return self.default
 
             raise self.model.DoesNotExist(msg)
