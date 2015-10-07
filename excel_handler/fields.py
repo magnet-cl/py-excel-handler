@@ -34,12 +34,15 @@ class Field(object):
         if self.choices:
             try:
                 return self.cast_method(self.choices_inv[value])
-            except ValueError, error:
-                error.args += (self.name,)
-                raise ValueError(error)
-            except KeyError, error:
-                error.args += (self.name,)
-                raise KeyError(error)
+            except:
+                try:
+                    return self.choices_inv[value]
+                except ValueError, error:
+                    error.args += (self.name,)
+                    raise ValueError(error)
+                except KeyError, error:
+                    error.args += (self.name,)
+                    raise KeyError(error)
 
         try:
             return self.cast_method(value)
