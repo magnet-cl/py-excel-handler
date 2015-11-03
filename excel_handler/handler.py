@@ -94,8 +94,27 @@ class ExcelHandler():
 
     def set_default_formats(self):
         self.date_format = self.workbook.add_format(
-            {'num_format': 'MM/DD/YYYY'}
+            {'num_format': 'YYYY-MM-DD'}
         )
+        self.datetime_format = self.workbook.add_format(
+            {'num_format': 'YYYY-MM-DD HH:MM:SS'}
+        )
+        self.time_format = self.workbook.add_format(
+            {'num_format': 'HH:MM:SS'}
+        )
+
+    def set_row_formats_from_example(self, row):
+        i = 0
+        for cel in row:
+            if isinstance(cel, datetime.date):
+                self.sheet.set_column(i, i, 18, cell_format=self.date_format)
+            elif isinstance(cel, datetime.datetime):
+                self.sheet.set_column(
+                    i, i, 18, cell_format=self.datetime_format
+                )
+            elif isinstance(cel, datetime.time):
+                self.sheet.set_column(i, i, 18, cell_format=self.time_format)
+            i += 1
 
     def add_sheet(self, name):
         # xlwt
