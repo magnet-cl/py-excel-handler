@@ -79,6 +79,7 @@ class ExcelHandler():
 
             self.workbook = xlrd.open_workbook(file_contents=excel_file.read())
             self.sheet = self.workbook.sheet_by_index(0)
+
         else:
             self.path = path
 
@@ -87,7 +88,14 @@ class ExcelHandler():
 
             self.workbook = xlsxwriter.Workbook(self.path)
 
+        self.set_default_formats()
+
         self.parser = None
+
+    def set_default_formats(self):
+        self.date_format = self.workbook.add_format(
+            {'num_format': 'MM/DD/YYYY'}
+        )
 
     def add_sheet(self, name):
         # xlwt
@@ -235,15 +243,14 @@ class ExcelHandler():
     def set_title_format(self, formt):
         pass
 
-    def set_row_format(self, formt):
-        pass
+    def set_row_format(self):
+        return None
 
     def write_rows(self, rows, col_offset=0, row_offset=0, set_titles=False):
         """ Write rows in the current sheet """
 
         title_formt = self.workbook.add_format()
-        row_formt = self.workbook.add_format()
-        self.set_row_format(row_formt)
+        row_formt = self.set_row_format()
 
         if set_titles:
             self.set_title_format(title_formt)
