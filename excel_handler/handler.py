@@ -88,7 +88,7 @@ class ExcelHandler():
 
             self.workbook = xlsxwriter.Workbook(self.path)
 
-        self.set_default_formats()
+            self.set_default_formats()
 
         self.parser = None
 
