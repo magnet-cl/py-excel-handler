@@ -28,7 +28,7 @@ class Field(object):
             self.verbose_name = ""
 
     def cast(self, value, book, row_data):
-        if value == '' and hasattr(self, 'default'):
+        if value.strip() == '' and hasattr(self, 'default'):
             return self.default
 
         if self.choices:
