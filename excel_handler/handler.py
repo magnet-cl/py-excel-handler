@@ -166,16 +166,16 @@ class ExcelHandler():
         return data
 
     def read(self, skip_titles=False, failfast=False, ignore_blank_rows=True,
-             include_rowx=False, return_errors=False):
+             include_rowx=False, return_errors=False, starting_row=0):
         """
         Using the structure defined with the Field attributes, reads the excel
         and returns the data in an array of dicts
         """
         data = []
         errors = []
-        row = 0
+        row = starting_row
         if skip_titles:
-            row = 1
+            row += 1
 
         # prepare the read for each field
         for field_name, field in self.fieldname_to_field.items():
