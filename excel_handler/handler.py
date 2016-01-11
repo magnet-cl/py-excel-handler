@@ -46,6 +46,10 @@ class ExcelHandlerMetaClass(type):
                 fieldname_to_field[k] = field
 
         attrs['fieldname_to_field'] = fieldname_to_field
+        attrs['fields'] = sorted(
+            fieldname_to_field.values(),
+            key=lambda field: field.col
+        )
 
         sup = super(ExcelHandlerMetaClass, cls)
 
@@ -178,7 +182,7 @@ class ExcelHandler():
             row += 1
 
         # prepare the read for each field
-        for field_name, field in self.fieldname_to_field.items():
+        for field in self.fields:
             field.prepare_write()
 
         while True:
@@ -187,7 +191,8 @@ class ExcelHandler():
             continue_while = False
             blank_row = True
 
-            for field_name, field in self.fieldname_to_field.items():
+            for field in self.fields:
+                field_name = field.name
                 try:
                     value = self.sheet.cell(
                         colx=field.col,
