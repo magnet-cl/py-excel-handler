@@ -210,7 +210,7 @@ class ExcelHandler():
                         if not err.args:
                             err.args = ('', )
                         msg = 'Cannot read row "{}" : Column {}, {}'.format(
-                            row + 1, field.name, err.args[0])
+                            row + 1, field.verbose_name, err.args[0])
                         err.args = (msg,) + err.args[1:]
                         if failfast:
                             raise
