@@ -32,7 +32,7 @@ class ExcelHandlerMetaClass(type):
                 field = attrs.pop(k)
                 field.name = k
                 if field.verbose_name == "":
-                    field.verbose_name = name
+                    field.verbose_name = field.name
                 if field.col < 0:
                     field._distance_from_last = field.col
 
