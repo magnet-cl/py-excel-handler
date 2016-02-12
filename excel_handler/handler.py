@@ -214,7 +214,7 @@ class ExcelHandler():
                     except Exception as err:
                         if not err.args:
                             err.args = ('', )
-                        msg = 'Cannot read row "{}" : Column {}, {}'.format(
+                        msg = u'Cannot read row "{}" : Column {}, {}'.format(
                             row + 1, unicode(field.verbose_name), err.args[0])
                         err.args = (msg,) + err.args[1:]
                         if failfast:
