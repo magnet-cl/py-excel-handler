@@ -27,6 +27,8 @@ class Field(object):
         else:
             self.verbose_name = ""
 
+        self.format = None
+
     def cast(self, value, book, row_data):
         if isinstance(value, basestring):
             if value.strip() == '' and hasattr(self, 'default'):
@@ -79,7 +81,7 @@ class Field(object):
                 self.col,
                 self.col,
                 self.width,
-                cell_format=handler.date_format
+                cell_format=self.format
             )
 
     def set_format(self, workbook, sheet):
