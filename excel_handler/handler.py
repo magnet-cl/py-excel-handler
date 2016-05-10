@@ -335,7 +335,7 @@ class ExcelHandler():
 
         # set format and prepare the write for each field
         for field_name, field in self.fieldname_to_field.items():
-            field.set_format(self.workbook, self.sheet)
+            field.set_column_format(self)
             field.prepare_write()
 
         for row_data in data:

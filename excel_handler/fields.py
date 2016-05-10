@@ -70,10 +70,20 @@ class Field(object):
 
         sheet.write(row, self.col,  value)
 
+    def set_column_format(self, handler):
+        """
+        Sets the format of the column this field, by setting the width
+        """
+        if self.width:
+            handler.sheet.set_column(
+                self.col,
+                self.col,
+                self.width,
+                cell_format=handler.date_format
+            )
+
     def set_format(self, workbook, sheet):
         if self.width:
-            # xlwt format size
-            # sheet.col(self.col).width = self.width
             sheet.set_column(self.col, self.col, self.width)
 
 
@@ -106,20 +116,27 @@ class DateTimeField(Field):
         return date.replace(tzinfo=self.tzinfo)
 
     def write(self, workbook, sheet, row, value):
-        # xlwt date format
-        # xf = xlswriter.easyxf(num_format_str='MM/DD/YYYY HH:MM:SS')
-        # sheet.write(row, self.col,  value, xf)
+        if value:
+            value = value.replace(tzinfo=None)
+        sheet.write(row, self.col,  value)
+
+    def set_column_format(self, handler):
+        """
+        DateTimeField Sets the format of the column this field is in using the
+        handler's date format
+        """
+        handler.sheet.set_column(
+            self.col,
+            self.col,
+            18,
+            cell_format=handler.datetime_format
+        )
+
+    def set_format(self, workbook, sheet):
         date_format = workbook.add_format(
             {'num_format': 'MM/DD/YYYY HH:MM:SS'}
         )
-        if value:
-            value = value.replace(tzinfo=None)
-        sheet.write(row, self.col,  value, date_format)
-
-    def set_format(self, workbook, sheet):
-        # xlwt format size
-        # sheet.col(self.col).width = 4864  # 19 * 256
-        sheet.set_column(self.col, self.col, 18)
+        sheet.set_column(self.col, self.col, 18, date_format)
 
 
 class TimeField(Field):
@@ -140,17 +157,28 @@ class TimeField(Field):
         return time.replace(tzinfo=self.tzinfo)
 
     def write(self, workbook, sheet, row, value):
+        if value:
+            # xslx writer does not handle timezone aware values
+            value = value.replace(tzinfo=None)
+        sheet.write(row, self.col, value)
+
+    def set_column_format(self, handler):
+        """
+        TimeField Sets the format of the column this field is in using the
+        handler's time format
+        """
+        handler.sheet.set_column(
+            self.col,
+            self.col,
+            18,
+            cell_format=handler.time_format
+        )
+
+    def set_format(self, workbook, sheet):
         date_format = workbook.add_format(
             {'num_format': 'HH:MM:SS'}
         )
-        if value:
-            value = value.replace(tzinfo=None)
-        sheet.write(row, self.col,  value, date_format)
-
-    def set_format(self, workbook, sheet):
-        # xlwt format size
-        # sheet.col(self.col).width = 4864  # 19 * 256
-        sheet.set_column(self.col, self.col, 18)
+        sheet.set_column(self.col, self.col, 18, date_format)
 
 
 class DateField(DateTimeField):
@@ -185,18 +213,25 @@ class DateField(DateTimeField):
         return datetime.date(*date_tuple[:3])
 
     def write(self, workbook, sheet, row, value):
-        # xlwt date format
-        # xf = xlswriter.easyxf(num_format_str='MM/DD/YYYY')
-        # sheet.write(row, self.col,  value, xf)
+        sheet.write(row, self.col,  value)
+
+    def set_column_format(self, handler):
+        """
+        Sets the format of the column this field is in using the
+        handler's time format
+        """
+        handler.sheet.set_column(
+            self.col,
+            self.col,
+            18,
+            cell_format=handler.date_format
+        )
+
+    def set_format(self, workbook, sheet):
         date_format = workbook.add_format(
             {'num_format': 'MM/DD/YYYY'}
         )
-        sheet.write(row, self.col,  value, date_format)
-
-    def set_format(self, workbook, sheet):
-        # xlwt format size
-        # sheet.col(self.col).width = 4864  # 19 * 256
-        sheet.set_column(self.col, self.col, 15)
+        sheet.set_column(self.col, self.col, 15, date_format)
 
 
 class DjangoModelField(Field):
