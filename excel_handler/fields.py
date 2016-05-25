@@ -29,6 +29,12 @@ class Field(object):
 
         self.format = None
 
+    def __unicode__(self):
+        return u'{}: {}'.format(
+            self.__class__.__name__,
+            self.verbose_name
+        )
+
     def cast(self, value, book, row_data):
         if isinstance(value, basestring):
             if value.strip() == '' and hasattr(self, 'default'):
@@ -275,9 +281,11 @@ class ForeignKeyField(Field):
         if value == '' and hasattr(self, 'default'):
             return self.default
 
-        value = self.lookup_type(value)
-        if self.case_insensitive:
-            value = value.lower()
+        if value:
+            value = self.lookup_type(value)
+
+            if self.case_insensitive:
+                value = value.lower()
 
         try:
             return self.lookup_to_pk[value]
@@ -300,7 +308,9 @@ class ForeignKeyField(Field):
         super(ForeignKeyField, self).write(workbook, sheet, row, value)
 
     def prepare_read(self):
-        self.objects = self.model.objects.all().values_list('id', self.lookup)
+        self.objects = self.model.objects.all()
+        self.objects = self.objects.exclude(**{self.lookup: None})
+        self.objects = self.objects.values_list('id', self.lookup)
 
         try:
             self.lookup_type = type(self.objects[0][1])
@@ -310,7 +320,9 @@ class ForeignKeyField(Field):
         self.pk_to_lookup = dict(self.objects)
 
         if self.case_insensitive:
-            self.lookup_to_pk = dict((y.lower(), x) for x, y in self.objects)
+            self.lookup_to_pk = dict(
+                (y.lower(), x) for x, y in self.objects if y
+            )
         else:
             self.lookup_to_pk = dict((y, x) for x, y in self.objects)
 
