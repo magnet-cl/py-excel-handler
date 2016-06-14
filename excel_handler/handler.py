@@ -183,7 +183,7 @@ class ExcelHandler():
 
         # prepare the read for each field
         for field in self.fields:
-            field.prepare_write()
+            field.prepare_read()
 
         while True:
             row_data = {}

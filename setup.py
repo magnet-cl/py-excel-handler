@@ -10,7 +10,7 @@ except ImportError:
 
 setup(
     name='py-excel-handler',
-    version='0.2.3',
+    version='0.2.4',
     description='A set of tools over xlutils to read and write excel files',
     author="Ignacio Munizaga",
     author_email='muni@magnet.cl',
