@@ -191,10 +191,13 @@ class TimeField(Field):
 
 class DateField(DateTimeField):
     def cast(self, value, workbook, row_data):
-        if value == '' and hasattr(self, 'default'):
-            if callable(self.default):
-                return self.default()
-            return self.default
+        if value == '':
+            if hasattr(self, 'default'):
+                if callable(self.default):
+                    return self.default()
+                return self.default
+            else:
+                return None
 
         try:
             # try to parse date in excel format
