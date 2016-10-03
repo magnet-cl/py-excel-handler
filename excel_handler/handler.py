@@ -72,16 +72,22 @@ class ExcelHandler():
 
     __metaclass__ = ExcelHandlerMetaClass
 
-    def __init__(self, path=None, excel_file=None, mode='r'):
+    def __init__(self, path=None, excel_file=None, mode='r', on_demand=False):
         if path is None and excel_file is None:
             raise Exception("path or excel_file requried")
         if path is not None and excel_file is not None:
             raise Exception("Only specify path or excel_file, not both")
         if mode == 'r':
             if path:
-                excel_file = open(path, mode)
-
-            self.workbook = xlrd.open_workbook(file_contents=excel_file.read())
+                self.workbook = xlrd.open_workbook(
+                    filename=path,
+                    on_demand=on_demand,
+                )
+            else:
+                self.workbook = xlrd.open_workbook(
+                    file_contents=excel_file.read(),
+                    on_demand=on_demand,
+                )
             self.sheet = self.workbook.sheet_by_index(0)
 
         else:
