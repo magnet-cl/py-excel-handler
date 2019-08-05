@@ -96,7 +96,10 @@ class ExcelHandler():
             # xlwt woorkbook
             # self.workbook = xlwt.Workbook()
 
-            self.workbook = xlsxwriter.Workbook(self.path)
+            self.workbook = xlsxwriter.Workbook(
+                self.path,
+                {'nan_inf_to_errors': True}
+            )
 
             self.set_default_formats()
 
