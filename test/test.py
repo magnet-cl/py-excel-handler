@@ -1,3 +1,4 @@
+from builtins import object
 from excel_handler import ExcelHandler
 from excel_handler import fields
 
@@ -5,7 +6,7 @@ import unittest
 import datetime
 
 
-class Query:
+class Query(object):
     def values_list(*args, **kwargs):
         return [(
             'one', 1
@@ -16,13 +17,13 @@ class Query:
         )]
 
 
-class Meta:
+class Meta(object):
     object_name = 'model'
 
 
-class Model():
+class Model(object):
 
-    class Objects:
+    class Objects(object):
         def all(self):
             return Query()
 
@@ -128,10 +129,10 @@ class TestExcelHandlerCase(unittest.TestCase):
         self.assertEqual(len(second_row), 2)
         self.assertEqual(len(second_row[0]), 4)
 
-        for key, value in data[0].items():
+        for key, value in list(data[0].items()):
             self.assertEqual(first_row[0][key], value)
 
-        for key, value in data[1].items():
+        for key, value in list(data[1].items()):
             self.assertEqual(second_row[0][key], value)
 
     def test_write_rows(self):
@@ -160,7 +161,7 @@ class TestErrorHandler(unittest.TestCase):
 
         self.assertEqual(len(expected_data), len(data))
         for i, obj in enumerate(expected_data):
-            for k, expected_value in obj.items():
+            for k, expected_value in list(obj.items()):
                 read_value = data[i][k]
                 self.assertEqual(read_value, expected_value)
 
@@ -185,7 +186,7 @@ class TestEmptyRows(unittest.TestCase):
 
         self.assertEqual(len(expected_data), len(data))
         for i, obj in enumerate(expected_data):
-            for k, expected_value in obj.items():
+            for k, expected_value in list(obj.items()):
                 read_value = data[i][k]
                 self.assertEqual(read_value, expected_value)
 
@@ -207,7 +208,7 @@ class TestEmptyRows(unittest.TestCase):
 
         self.assertEqual(len(expected_data), len(data))
         for i, obj in enumerate(expected_data):
-            for k, expected_value in obj.items():
+            for k, expected_value in list(obj.items()):
                 read_value = data[i][k]
                 self.assertEqual(read_value, expected_value)
 
@@ -252,7 +253,7 @@ class TestCustomExcelHandler(unittest.TestCase):
 
         self.assertEqual(len(expected_data), len(data))
         for i, obj in enumerate(expected_data):
-            for k, expected_value in obj.items():
+            for k, expected_value in list(obj.items()):
                 read_value = data[i][k]
                 self.assertEqual(read_value, expected_value)
 
@@ -290,7 +291,7 @@ class TestCustomExcelHandler(unittest.TestCase):
         self.assertEqual(len(in_data), 3)
 
         for i, obj in enumerate(data):
-            for k, v in obj.items():
+            for k, v in list(obj.items()):
                 self.assertEqual(in_data[i][k], v)
 
         # testing the choices valus
@@ -339,7 +340,7 @@ class TestForeignKeyField(unittest.TestCase):
 
         self.assertEqual(len(expected_data), len(data))
         for i, obj in enumerate(expected_data):
-            for k, expected_value in obj.items():
+            for k, expected_value in list(obj.items()):
                 read_value = data[i][k]
                 self.assertEqual(read_value, expected_value)
 

@@ -1,10 +1,15 @@
 """ This document defines the excel_handler module """
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import str
+from builtins import object
 import xlrd
 import xlsxwriter
 import datetime
-from fields import Field
+from .fields import Field
 
 from collections import namedtuple
+from future.utils import with_metaclass
 
 
 class FieldNotFound(Exception):
@@ -27,7 +32,7 @@ class ExcelHandlerMetaClass(type):
 
         cols = {}
 
-        for k, v in attrs.items():
+        for k, v in list(attrs.items()):
             if isinstance(v, Field):
                 field = attrs.pop(k)
                 field.name = k
@@ -47,7 +52,7 @@ class ExcelHandlerMetaClass(type):
 
         attrs['fieldname_to_field'] = fieldname_to_field
         attrs['fields'] = sorted(
-            fieldname_to_field.values(),
+            list(fieldname_to_field.values()),
             key=lambda field: field.col
         )
 
@@ -56,7 +61,7 @@ class ExcelHandlerMetaClass(type):
         this = sup.__new__(cls, name, bases, attrs)
         field_count = len(fieldname_to_field)
 
-        for field_name, field in fieldname_to_field.items():
+        for field_name, field in list(fieldname_to_field.items()):
             try:
                 if field._distance_from_last < 0:
                     field.col = field_count + field._distance_from_last
@@ -66,11 +71,9 @@ class ExcelHandlerMetaClass(type):
         return this
 
 
-class ExcelHandler():
+class ExcelHandler(with_metaclass(ExcelHandlerMetaClass, object)):
     """ ExcelHandler is a class that is used to wrap common operations in
     excel files """
-
-    __metaclass__ = ExcelHandlerMetaClass
 
     def __init__(self, path=None, excel_file=None, mode='r', on_demand=False):
         if path is None and excel_file is None:
@@ -224,7 +227,7 @@ class ExcelHandler():
                         if not err.args:
                             err.args = ('', )
                         msg = u'Cannot read row "{}" : Column {}, {}'.format(
-                            row + 1, unicode(field.verbose_name), err.args[0])
+                            row + 1, str(field.verbose_name), err.args[0])
                         err.args = (msg,) + err.args[1:]
                         if failfast:
                             raise
@@ -240,7 +243,7 @@ class ExcelHandler():
                                     )
                                 )
                             else:
-                                print msg
+                                print(msg)
                             continue_while = True
                         break
 
@@ -333,22 +336,22 @@ class ExcelHandler():
             formt = self.workbook.add_format()
             self.set_title_format(formt)
 
-            for field_name, field in self.fieldname_to_field.items():
+            for field_name, field in list(self.fieldname_to_field.items()):
                 self.sheet.write(
                     0,
                     field.col,
-                    unicode(field.verbose_name),
+                    str(field.verbose_name),
                     formt
                 )
             row = 1
 
         # set format and prepare the write for each field
-        for field_name, field in self.fieldname_to_field.items():
+        for field_name, field in list(self.fieldname_to_field.items()):
             field.set_column_format(self)
             field.prepare_write()
 
         for row_data in data:
-            for field_name, value in row_data.items():
+            for field_name, value in list(row_data.items()):
                 try:
                     field = self.fieldname_to_field[field_name]
                 except KeyError:
