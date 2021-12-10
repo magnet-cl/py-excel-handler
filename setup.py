@@ -22,10 +22,12 @@ setup(
         # 'mimeparse',
         'xlutils(>=1.6.0)',
         'XlsxWriter(>=0.5.7)',
+        'future(>=0.18.2)'
     ],
     install_requires=[
         'xlutils >= 1.6.0',
         'XlsxWriter >= 0.5.7',
+        'future >= 0.18.2'
     ],
     package_data={
     },

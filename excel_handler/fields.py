@@ -1,3 +1,5 @@
+from builtins import str,object
+from past.builtins import basestring
 import xlrd
 import datetime
 
@@ -46,16 +48,16 @@ class Field(object):
             except:
                 try:
                     return self.choices_inv[value]
-                except ValueError, error:
+                except ValueError as error:
                     error.args += (self.name,)
                     raise ValueError(error)
-                except KeyError, error:
+                except KeyError as error:
                     error.args += (self.name,)
                     raise KeyError(error)
 
         try:
             return self.cast_method(value)
-        except ValueError, error:
+        except ValueError as error:
             error.args += (self.name, value)
             raise ValueError(error)
 
@@ -69,12 +71,12 @@ class Field(object):
         if self.choices:
             try:
                 value = self.choices[value]
-            except KeyError, error:
+            except KeyError as error:
                 if value is not None:
                     raise KeyError(error)
 
         if hasattr(value, 'translate'):
-            value = unicode(value)
+            value = str(value)
 
         sheet.write(row, self.col,  value)
 
@@ -104,7 +106,7 @@ class BooleanField(Field):
 class CharField(Field):
     def __init__(self, col, *args, **kwargs):
         super(CharField, self).__init__(col, *args, **kwargs)
-        self.cast_method = unicode
+        self.cast_method = str
 
 
 class DateTimeField(Field):
