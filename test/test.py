@@ -103,7 +103,7 @@ class TestExcelHandlerCase(unittest.TestCase):
 
     def test_read_rows(self):
 
-        excel_file = open('test/test.xls', 'r')
+        excel_file = open('test/test.xls', 'rb')
         eh = ExcelHandler(excel_file=excel_file)
 
         column_structure = {
