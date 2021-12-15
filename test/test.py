@@ -15,6 +15,8 @@ class Query(object):
         ), (
             '101', 101
         )]
+    def exclude(self, **kwargs):
+        return self      
 
 
 class Meta(object):
