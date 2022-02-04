@@ -1,4 +1,4 @@
-from builtins import str,object
+from builtins import str, object
 from past.builtins import basestring
 import xlrd
 import datetime
@@ -8,38 +8,35 @@ class Field(object):
     def __init__(self, col, **kwargs):
         self.col = col
 
-        if 'choices' in kwargs:
-            self.choices_inv = dict((y, x) for x, y in kwargs['choices'])
-            self.choices = dict((x, y) for x, y in kwargs['choices'])
+        if "choices" in kwargs:
+            self.choices_inv = dict((y, x) for x, y in kwargs["choices"])
+            self.choices = dict((x, y) for x, y in kwargs["choices"])
         else:
             self.choices = None
 
-        if 'default' in kwargs:
-            self.default = kwargs['default']
+        if "default" in kwargs:
+            self.default = kwargs["default"]
 
-        if 'width' in kwargs:
+        if "width" in kwargs:
             # xlwt format size
             # self.width = (kwargs['width'] + 1) * 256
-            self.width = kwargs['width']
+            self.width = kwargs["width"]
         else:
             self.width = None
 
-        if 'verbose_name' in kwargs:
-            self.verbose_name = kwargs['verbose_name']
+        if "verbose_name" in kwargs:
+            self.verbose_name = kwargs["verbose_name"]
         else:
             self.verbose_name = ""
 
         self.format = None
 
     def __unicode__(self):
-        return u'{}: {}'.format(
-            self.__class__.__name__,
-            self.verbose_name
-        )
+        return u"{}: {}".format(self.__class__.__name__, self.verbose_name)
 
     def cast(self, value, book, row_data):
         if isinstance(value, basestring):
-            if value.strip() == '' and hasattr(self, 'default'):
+            if value.strip() == "" and hasattr(self, "default"):
                 return self.default
 
         if self.choices:
@@ -75,10 +72,10 @@ class Field(object):
                 if value is not None:
                     raise KeyError(error)
 
-        if hasattr(value, 'translate'):
+        if hasattr(value, "translate"):
             value = str(value)
 
-        sheet.write(row, self.col,  value)
+        sheet.write(row, self.col, value)
 
     def set_column_format(self, handler):
         """
@@ -86,10 +83,7 @@ class Field(object):
         """
         if self.width:
             handler.sheet.set_column(
-                self.col,
-                self.col,
-                self.width,
-                cell_format=self.format
+                self.col, self.col, self.width, cell_format=self.format
             )
 
     def set_format(self, workbook, sheet):
@@ -100,7 +94,20 @@ class Field(object):
 class BooleanField(Field):
     def __init__(self, col, *args, **kwargs):
         super(BooleanField, self).__init__(col, *args, **kwargs)
-        self.cast_method = bool
+
+    def cast(self, value, workbook, row_data):
+        if value is None:
+            if hasattr(self, "default"):
+                if callable(self.default):
+                    return self.default()
+                return self.default
+            else:
+                return None
+
+        if value in ("=TRUE()",) or value is True:
+            return True
+        if value in ("=FALSE()",) or value is False:
+            return False
 
 
 class CharField(Field):
@@ -111,24 +118,21 @@ class CharField(Field):
 
 class DateTimeField(Field):
     def __init__(self, *args, **kwargs):
-        self.tzinfo = kwargs.pop('tzinfo', None)
+        self.tzinfo = kwargs.pop("tzinfo", None)
 
         super(DateTimeField, self).__init__(*args, **kwargs)
 
     def cast(self, value, workbook, row_data):
-        if value == '' and hasattr(self, 'default'):
+        if value == "" and hasattr(self, "default"):
             if callable(self.default):
                 return self.default()
             return self.default
-
-        date_tuple = xlrd.xldate_as_tuple(value, datemode=workbook.datemode)
-        date = datetime.datetime(*date_tuple[:6])
-        return date.replace(tzinfo=self.tzinfo)
+        return value
 
     def write(self, workbook, sheet, row, value):
         if value:
             value = value.replace(tzinfo=None)
-        sheet.write(row, self.col,  value)
+        sheet.write(row, self.col, value)
 
     def set_column_format(self, handler):
         """
@@ -136,27 +140,22 @@ class DateTimeField(Field):
         handler's date format
         """
         handler.sheet.set_column(
-            self.col,
-            self.col,
-            18,
-            cell_format=handler.datetime_format
+            self.col, self.col, 18, cell_format=handler.datetime_format
         )
 
     def set_format(self, workbook, sheet):
-        date_format = workbook.add_format(
-            {'num_format': 'MM/DD/YYYY HH:MM:SS'}
-        )
+        date_format = workbook.add_format({"num_format": "MM/DD/YYYY HH:MM:SS"})
         sheet.set_column(self.col, self.col, 18, date_format)
 
 
 class TimeField(Field):
     def __init__(self, *args, **kwargs):
-        self.tzinfo = kwargs.pop('tzinfo', None)
+        self.tzinfo = kwargs.pop("tzinfo", None)
 
         super(TimeField, self).__init__(*args, **kwargs)
 
     def cast(self, value, workbook, row_data):
-        if value == '' and hasattr(self, 'default'):
+        if value == "" and hasattr(self, "default"):
             if callable(self.default):
                 return self.default()
             return self.default
@@ -178,55 +177,27 @@ class TimeField(Field):
         handler's time format
         """
         handler.sheet.set_column(
-            self.col,
-            self.col,
-            18,
-            cell_format=handler.time_format
+            self.col, self.col, 18, cell_format=handler.time_format
         )
 
     def set_format(self, workbook, sheet):
-        date_format = workbook.add_format(
-            {'num_format': 'HH:MM:SS'}
-        )
+        date_format = workbook.add_format({"num_format": "HH:MM:SS"})
         sheet.set_column(self.col, self.col, 18, date_format)
 
 
 class DateField(DateTimeField):
     def cast(self, value, workbook, row_data):
-        if value == '':
-            if hasattr(self, 'default'):
+        if value == "":
+            if hasattr(self, "default"):
                 if callable(self.default):
                     return self.default()
                 return self.default
             else:
                 return None
-
-        try:
-            # try to parse date in excel format
-            date_tuple = xlrd.xldate_as_tuple(
-                value,
-                datemode=workbook.datemode
-            )
-        except ValueError:
-            # try to parse dates like dd/mm/YYYY
-            if len(value) <= 10:
-
-                if '/' in value:
-                    date_tuple = value.split('/')
-                elif '-' in value:
-                    date_tuple = value.split('-')
-
-                date_tuple = [int(x) for x in date_tuple]
-
-                if date_tuple[2] > 1000:
-                    date_tuple.reverse()
-            else:
-                raise
-
-        return datetime.date(*date_tuple[:3])
+        return value.date()
 
     def write(self, workbook, sheet, row, value):
-        sheet.write(row, self.col,  value)
+        sheet.write(row, self.col, value)
 
     def set_column_format(self, handler):
         """
@@ -234,16 +205,11 @@ class DateField(DateTimeField):
         handler's time format
         """
         handler.sheet.set_column(
-            self.col,
-            self.col,
-            18,
-            cell_format=handler.date_format
+            self.col, self.col, 18, cell_format=handler.date_format
         )
 
     def set_format(self, workbook, sheet):
-        date_format = workbook.add_format(
-            {'num_format': 'MM/DD/YYYY'}
-        )
+        date_format = workbook.add_format({"num_format": "MM/DD/YYYY"})
         sheet.set_column(self.col, self.col, 15, date_format)
 
 
@@ -252,7 +218,7 @@ class DjangoModelField(Field):
     This field translates excel values to django models and viceversa
     """
 
-    def __init__(self, col, model, lookup='pk', *args, **kwargs):
+    def __init__(self, col, model, lookup="pk", *args, **kwargs):
         super(DjangoModelField, self).__init__(col, *args, **kwargs)
 
         self.lookup = lookup
@@ -271,8 +237,18 @@ class ForeignKeyField(Field):
     """
     This field translates excel values to django foreign keys
     """
-    def __init__(self, col, model, lookup='pk', default_on_lookup_fail=False,
-                 case_insensitive=False, on_lookup_fail=None, *args, **kwargs):
+
+    def __init__(
+        self,
+        col,
+        model,
+        lookup="pk",
+        default_on_lookup_fail=False,
+        case_insensitive=False,
+        on_lookup_fail=None,
+        *args,
+        **kwargs
+    ):
 
         super(ForeignKeyField, self).__init__(col, *args, **kwargs)
 
@@ -283,7 +259,7 @@ class ForeignKeyField(Field):
         self.on_lookup_fail = on_lookup_fail
 
     def cast(self, value, workbook, row_data):
-        if value == '' and hasattr(self, 'default'):
+        if value == "" and hasattr(self, "default"):
             return self.default
 
         if value:
@@ -295,9 +271,10 @@ class ForeignKeyField(Field):
         try:
             return self.lookup_to_pk[value]
         except KeyError:
-            msg = ("%s matching query does not exist. "
-                   "Lookup parameters were %s" %
-                   (self.model._meta.object_name, {self.lookup: value}))
+            msg = "%s matching query does not exist. " "Lookup parameters were %s" % (
+                self.model._meta.object_name,
+                {self.lookup: value},
+            )
             if self.on_lookup_fail:
                 return self.on_lookup_fail(row_data, value)
 
@@ -307,7 +284,7 @@ class ForeignKeyField(Field):
             raise self.model.DoesNotExist(msg)
 
     def write(self, workbook, sheet, row, value):
-        if self.lookup != 'pk' and self.lookup != 'id' and value is not None:
+        if self.lookup != "pk" and self.lookup != "id" and value is not None:
             value = self.pk_to_lookup[value]
 
         super(ForeignKeyField, self).write(workbook, sheet, row, value)
@@ -315,7 +292,7 @@ class ForeignKeyField(Field):
     def prepare_read(self):
         self.objects = self.model.objects.all()
         self.objects = self.objects.exclude(**{self.lookup: None})
-        self.objects = self.objects.values_list('id', self.lookup)
+        self.objects = self.objects.values_list("id", self.lookup)
 
         try:
             self.lookup_type = type(self.objects[0][1])
@@ -325,9 +302,7 @@ class ForeignKeyField(Field):
         self.pk_to_lookup = dict(self.objects)
 
         if self.case_insensitive:
-            self.lookup_to_pk = dict(
-                (y.lower(), x) for x, y in self.objects if y
-            )
+            self.lookup_to_pk = dict((y.lower(), x) for x, y in self.objects if y)
         else:
             self.lookup_to_pk = dict((y, x) for x, y in self.objects)
 
