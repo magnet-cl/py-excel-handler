@@ -125,8 +125,8 @@ class TestChangeSheetCase(unittest.TestCase):
 class TestExcelHandlerCase(unittest.TestCase):
     def test_read_rows(self):
 
-        excel_file = open("test/test.xlsx", "rb")
-        eh = ExcelHandler(excel_file=excel_file)
+        with open("test/test.xlsx", "rb") as excel_file:
+            eh = ExcelHandler(excel_file=excel_file)
 
         column_structure = {"first": 0, "second": 1, "third": 2, "fourth": 3}
 
