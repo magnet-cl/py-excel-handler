@@ -1,7 +1,6 @@
 from builtins import str, object
 from past.builtins import basestring
-import xlrd
-import datetime
+from openpyxl.utils.datetime import from_excel
 
 
 class Field(object):
@@ -161,8 +160,7 @@ class TimeField(Field):
             return self.default
 
         value = value - int(value)
-        date_tuple = xlrd.xldate_as_tuple(value, datemode=workbook.datemode)
-        time = datetime.time(*date_tuple[3:])
+        time = from_excel(value).time()
         return time.replace(tzinfo=self.tzinfo)
 
     def write(self, workbook, sheet, row, value):

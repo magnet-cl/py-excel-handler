@@ -1,7 +1,6 @@
 """ This document defines the excel_handler module """
 from __future__ import print_function, absolute_import
 from builtins import str, object
-import xlrd
 import xlsxwriter
 import datetime
 from .fields import Field
@@ -9,6 +8,7 @@ from .fields import Field
 from collections import namedtuple
 from future.utils import with_metaclass
 
+from openpyxl.utils.datetime import from_excel
 from openpyxl import load_workbook
 
 
@@ -133,8 +133,7 @@ class ExcelHandler(with_metaclass(ExcelHandlerMetaClass, object)):
         self.sheet = self.workbook[sheet_name]
 
     def parse_date(self, value):
-        date_tuple = xlrd.xldate_as_tuple(value, datemode=self.workbook.datemode)
-        return datetime.date(*date_tuple[:3])
+        return from_excel(value).date()
 
     def read_rows(self, column_structure, starting_row=1, max_rows=None):
         """Reads the current sheet from the starting row to the last row or up
