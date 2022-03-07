@@ -314,7 +314,10 @@ class ExcelHandler(with_metaclass(ExcelHandlerMetaClass, object)):
                         if failfast:
                             raise
                         if return_errors:
-                            msg = f'Cannot read row "{row.id}" : Column {str(field.verbose_name)}, {err.args[0]}'
+                            row_number = 0
+                            if len(row) > 0:
+                                row_number = row[0].row
+                            msg = f'Cannot read row "{row_number}" : Column {str(field.verbose_name)}, {err.args[0]}'
                             errors.append(
                                 RowError(
                                     row=row,
