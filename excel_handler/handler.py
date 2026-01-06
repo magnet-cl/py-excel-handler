@@ -67,7 +67,7 @@ class ExcelHandlerMetaClass(type):
             try:
                 if field._distance_from_last < 0:
                     field.col = field_count + field._distance_from_last
-            except:
+            except Exception:
                 pass
 
         return this
@@ -159,99 +159,6 @@ class ExcelHandler(with_metaclass(ExcelHandlerMetaClass, object)):
 
         return data
 
-    def _read(
-        self,
-        skip_titles=False,
-        failfast=False,
-        ignore_blank_rows=True,
-        include_rowx=False,
-        return_errors=False,
-        starting_row=0,
-    ):
-        """
-        Using the structure defined with the Field attributes, reads the excel
-        and returns the data in an array of dicts
-        """
-        data = []
-        errors = []
-        row = starting_row
-        if skip_titles:
-            row += 1
-
-        # prepare the read for each field
-        for field in self.fields:
-            field.prepare_read()
-
-        while True:
-            row_data = {}
-            data_read = False
-            continue_while = False
-            blank_row = True
-
-            for field in self.fields:
-                field_name = field.name
-                try:
-                    value = self.sheet.cell(colx=field.col, rowx=row).value
-                except:
-                    if hasattr(field, "default"):
-                        row_data[field.name] = field.default
-                else:
-                    if value != "":
-                        blank_row = False
-
-                    try:
-                        row_data[field.name] = field.cast(
-                            value,
-                            self.workbook,
-                            row_data,
-                        )
-                    except Exception as err:
-                        if not err.args:
-                            err.args = ("",)
-                        msg = 'Cannot read row "{}" : Column {}, {}'.format(
-                            row + 1, str(field.verbose_name), err.args[0]
-                        )
-                        err.args = (msg,) + err.args[1:]
-                        if failfast:
-                            raise
-                        else:
-                            row_data[field.name] = value
-                            if return_errors:
-                                errors.append(
-                                    RowError(
-                                        row=row,
-                                        row_data=row_data,
-                                        error=msg,
-                                        field_name=field_name,
-                                    )
-                                )
-                            else:
-                                print(msg)
-                            continue_while = True
-                        break
-
-                    data_read = True
-
-                if include_rowx:
-                    row_data["rowx"] = row
-
-            row += 1
-
-            if continue_while:
-                continue
-
-            if not data_read:
-                if return_errors:
-                    return data, errors
-                return data
-
-            if not blank_row or not ignore_blank_rows:
-                data.append(row_data)
-
-        if return_errors:
-            return data, errors
-        return data
-
     def read(
         self,
         skip_titles=False,
@@ -317,7 +224,10 @@ class ExcelHandler(with_metaclass(ExcelHandlerMetaClass, object)):
                             row_number = 0
                             if len(row) > 0:
                                 row_number = row[0].row
-                            msg = f'Cannot read row "{row_number}" : Column {str(field.verbose_name)}, {err.args[0]}'
+                            msg = (
+                                f'Cannot read row "{row_number}" : '
+                                f'Column {str(field.verbose_name)}, {err.args[0]}'
+                            )
                             errors.append(
                                 RowError(
                                     row=row,
