@@ -10,6 +10,7 @@ from future.utils import with_metaclass
 
 from openpyxl.utils.datetime import from_excel
 from openpyxl import load_workbook
+from openpyxl.cell.read_only import EmptyCell
 
 
 class FieldNotFound(Exception):
@@ -86,10 +87,12 @@ class ExcelHandler(with_metaclass(ExcelHandlerMetaClass, object)):
             if path:
                 self.workbook = load_workbook(
                     filename=path,
+                    read_only=True,
                 )
             else:
                 self.workbook = load_workbook(
                     filename=excel_file,
+                    read_only=True,
                 )
             self.sheet = self.workbook.worksheets[0]
 
@@ -159,6 +162,93 @@ class ExcelHandler(with_metaclass(ExcelHandlerMetaClass, object)):
 
         return data
 
+    def parse_row(self, row, row_number):
+        field_value_pairs = []
+        row_data = {}
+        has_data = False
+
+        for column, cell in enumerate(row):
+            if column >= self.fields_length:
+                break
+
+            value = cell.value
+
+            if value is not None:
+                has_data = True
+
+            if isinstance(cell, EmptyCell):
+                field = self.fields[column]
+            else:
+                field = self.fields[cell.column - 1]
+
+            field_value_pairs.append((field, value))
+
+        if not has_data:
+            return row_data, None
+
+        for field, value in field_value_pairs:
+            if value is None and hasattr(field, "default"):
+                default_value = field.default
+                if callable(default_value):
+                    value = default_value()
+                else:
+                    value = default_value
+            else:
+                try:
+                    value = field.cast(
+                        value,
+                        self.workbook,
+                        row_data,
+                    )
+                except Exception as err:
+                    msg = (
+                        f'Cannot read row "{row_number}" : '
+                        f'Column {str(field.verbose_name)}, {err.args[0]}'
+                    )
+                    return row_data, RowError(
+                        row=row,
+                        row_data=row_data,
+                        error=msg,
+                        field_name=field.name,
+                    )
+
+            row_data[field.name] = value
+        return row_data, None
+
+    def iter_rows(self, min_row=1, ignore_blank_rows=True):
+        self.prepare_fields_for_reading()
+
+        for i, row in enumerate(self.sheet.iter_rows(min_row=min_row)):
+            row_number = i + min_row
+            try:
+                row_data, row_error = self.parse_row(row, row_number)
+                if row_error:
+                    yield None, row_error
+                    continue
+                if ignore_blank_rows and all(not value for value in row_data.values()):
+                    continue
+                yield row_data, None
+            except Exception as err:
+                try:
+                    row_number = row[0].row
+                except IndexError:
+                    row_number = 0
+
+                msg = f'Cannot read row "{row_number}" : {err}'
+                yield None, RowError(
+                    row=row,
+                    row_data=None,
+                    error=msg,
+                    field_name=None,
+                )
+
+    def prepare_fields_for_reading(self):
+        # prepare the read for each field
+        for field in self.fields:
+            field.prepare_read()
+
+        self.fields_length = len(self.fields)
+
     def read(
         self,
         skip_titles=False,
@@ -182,69 +272,28 @@ class ExcelHandler(with_metaclass(ExcelHandlerMetaClass, object)):
         if not starting_row == 1:
             min_row = starting_row
 
-        # prepare the read for each field
-        for field in self.fields:
-            field.prepare_read()
+        self.prepare_fields_for_reading()
 
-        for row in self.sheet.iter_rows(min_row=min_row):
-            row_data = {}
-            empty_fields = []
+        for i, row in enumerate(self.sheet.iter_rows(min_row=min_row)):
             has_errors = False
+            row_number = i + min_row
 
-            for cell in row:
-                value = cell.value
+            row_data, row_error = self.parse_row(row, row_number)
 
-                try:
-                    # get fields by column
-                    field = self.fields[cell.column - 1]
-                except Exception:
-                    break
-
-                if value is None:
-                    empty_fields.append(value)
-
-                if value is None and hasattr(field, "default"):
-                    default_value = field.default
-                    if callable(default_value):
-                        value = default_value()
-                    else:
-                        value = default_value
-                else:
-                    try:
-                        value = field.cast(
-                            value,
-                            self.workbook,
-                            row_data,
-                        )
-                    except Exception as err:
-                        has_errors = True
-                        if failfast:
-                            raise
-                        if return_errors:
-                            row_number = 0
-                            if len(row) > 0:
-                                row_number = row[0].row
-                            msg = (
-                                f'Cannot read row "{row_number}" : '
-                                f'Column {str(field.verbose_name)}, {err.args[0]}'
-                            )
-                            errors.append(
-                                RowError(
-                                    row=row,
-                                    row_data=row_data,
-                                    error=msg,
-                                    field_name=field.name,
-                                )
-                            )
-                        break
-
-                row_data[field.name] = value
+            if row_error:
+                has_errors = True
+                if failfast:
+                    raise
+                if return_errors:
+                    errors.append(row_error)
+                break
 
             if has_errors:
                 continue
 
             if ignore_blank_rows:
-                if not len(empty_fields) == len(row_data):
+                # if all fields are empty
+                if not all(not value for value in row_data.values()):
                     data.append(row_data)
             else:
                 data.append(row_data)
